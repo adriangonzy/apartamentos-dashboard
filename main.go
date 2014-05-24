@@ -25,12 +25,15 @@ func root(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
 	if resp, e = urlfetch.Client(c).Get(url); e != nil {
+		c.Debugf("%v", e)
 		http.Error(w, e.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if doc, e = goquery.NewDocumentFromResponse(resp); e != nil {
 		c.Debugf("%v", e)
+		http.Error(w, e.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	jsondata := regexp.MustCompile("{\".*}}")
