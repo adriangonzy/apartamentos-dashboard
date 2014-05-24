@@ -1,0 +1,101 @@
+div.datepicker-dates {
+  position: relative;
+  width: 156px;
+  height: 100%;
+}
+div.datepicker-dates div.day {
+  position: absolute;
+  font-size: 16px;
+  font-weight: lighter;
+}
+.dayInWeek-1 {
+  left: 0
+}
+.dayInWeek-2 {
+  left: 22px
+}
+.dayInWeek-3 {
+  left: 44px
+}
+.dayInWeek-4 {
+  left: 66px
+}
+.dayInWeek-5 {
+  left: 88px
+}
+.dayInWeek-6 {
+  left: 110px
+}
+.dayInWeek-0 {
+  left: 132px
+}
+.week-1 {
+  top: 0
+}
+.week-2 {
+  top: 24px
+}
+.week-3 {
+  top: 48px
+}
+.week-4 {
+  top: 72px
+}
+.week-5 {
+  top: 96px
+}
+.week-6 {
+  top: 120px;
+}
+.datepicker {
+  position: relative;
+  height: 225px;
+  width: 170px;
+  z-index: 10;
+  background-color: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.175);
+  background-clip: padding-box;
+  border-radius: 10px;
+}
+.datepicker .out .day a {
+  color: gray;
+}
+.datepicker .day a {
+  width: 20px;
+  display: block;
+  text-align: center;
+}
+.datepicker .day a:hover {
+  text-decoration: none;
+  background-color: #e0e0e0;
+}
+.datepicker .day .selected {
+  background-color: #d3d3d3;
+  color: red;
+}
+.datepicker .datapicker-month, .datepicker .datapicker-year {
+  text-align: center;
+}
+
+.datepicker-container {
+  position: relative;
+  padding: 0px 10px;
+}
+.datepicker-wrapper {
+  position: absolute;
+  margin-top: 5px;
+}
+
+.datepicker .numberpicker {
+  margin: .2em;
+  text-align: center;
+}
+
+.datepicker .numberpicker span {
+  width: 50%;
+  font-size: 16px;
+ } 
+.datepicker .numberpicker .btn {
+  border: none;
+}
+

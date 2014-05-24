@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="build/react.js"></script>
+    <script src="build/JSXTransformer.js"></script>
+    <script type="text/jsx" src="datepicker.jsx"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
+    <link type="text/css" href="styles/datepicker.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <div id="example"></div>
+      <p>
+        <div id="datepicker"></div>
+      </p>
+      <p>
+        <div id="datepicker-input"></div>
+      </p>
+    </div>
+    <script type="text/jsx">
+      /** @jsx React.DOM */
+      
+      React.renderComponent(
+        <h1>Hello, world!</h1>,
+        document.getElementById('example')
+      );
+
+      React.renderComponent(
+        <DatePicker date={new Date()} />,
+        document.getElementById('datepicker')
+      );
+
+      React.renderComponent(
+        <DatePickerInput date={new Date()} />,
+        document.getElementById('datepicker-input')
+      );
+    </script>
+  </body>
+</html>

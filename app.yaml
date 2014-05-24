@@ -1,0 +1,14 @@
+application: galobarna-87
+version: 1
+runtime: go
+api_version: go1
+
+handlers:
+
+# The root URL (/) is handled by the Go application. No other URLs match this pattern.
+- url: /app
+  static_dir: app
+
+# All other URLs are handled by the Go application.
+- url: /.*
+  script: _go_app
