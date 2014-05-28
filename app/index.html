@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html>
   <head>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>    
+
     <script src="build/react.js"></script>
     <script src="build/JSXTransformer.js"></script>
+
     <script type="text/jsx" src="datepicker.jsx"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
     <link type="text/css" href="styles/datepicker.css" rel="stylesheet" />
   </head>
   <body>
+
     <div class="container">
       <div id="example"></div>
       <p>
@@ -18,11 +23,48 @@
         <div id="datepicker-input"></div>
       </p>
     </div>
+
     <script type="text/jsx">
       /** @jsx React.DOM */
+
+      var NewApartForm = React.createClass({
+          postNewApart: function(apart_id) {
+            $.post("/rest/apart?apart_id=" + apart_id)
+            .done(function(data) {
+              console.log("SUCCESS");
+            })
+            .fail(function(data) {
+              console.log("FAIL");
+            })
+          },
+          handleSubmit: function(e) {
+            //e.preventDefault();
+            var apart_id = this.refs.apart_id.getDOMNode().value.trim();
+            if (!apart_id) {
+              return false;
+            }
+            console.log("APART ID " + apart_id);
+            // post new apart
+            this.postNewApart(apart_id);
+            // clear form
+            this.refs.apart_id.getDOMNode().value = '';
+            return false;
+          },
+          render: function() {
+            return (
+              <form className="apartForm" onSubmit={this.handleSubmit}>
+                <input 
+                  type="text" 
+                  placeholder="Nueva Referencia Apartamento Homelidays"
+                  ref="apart_id" />
+                <input type="submit" value="Post" />
+              </form>
+            );
+          }
+      });
       
       React.renderComponent(
-        <h1>Hello, world!</h1>,
+        <NewApartForm />,
         document.getElementById('example')
       );
 
@@ -31,10 +73,7 @@
         document.getElementById('datepicker')
       );
 
-      React.renderComponent(
-        <DatePickerInput date={new Date()} />,
-        document.getElementById('datepicker-input')
-      );
     </script>
+
   </body>
 </html>

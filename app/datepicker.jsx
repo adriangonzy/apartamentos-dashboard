@@ -1,6 +1,6 @@
 /** @jsx React.DOM */
 
-        var DateUtils = {
+  var DateUtils = {
     /**
      * Gets count of days in current month.
      * @param {number} month January has number 1. February 2, ... and so on
