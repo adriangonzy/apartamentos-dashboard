@@ -2,13 +2,25 @@
 
   var DateUtils = {
     /**
+     * Checks if passed date and parsed date are equal 
+     * @param {date}
+     * @param {string} string formatted date ex: 2014-04-05
+     * @returns {boolean}
+     */
+    checkIfSameDate: function(date, dateString) {
+      var previous = new Date(previousDate).setHours(0, 0, 0, 0);
+      var dateParts = dateString.split("-");
+      var current = new Date(dateParts[0], (dateParts[1] - 1), dateParts[0]);
+      return current === previous;
+    },
+    /**
      * Gets count of days in current month.
      * @param {number} month January has number 1. February 2, ... and so on
      * @param {number} year
      * @returns {number}
      */
     daysInMonthCount: function(month, year) {
-        var d =new Date(year, month+1, 0);
+        var d = new Date(year, month + 1, 0);
         return d.getDate();
     },
     /**
@@ -54,7 +66,7 @@
 
   var NumberPicker = React.createClass({
       getDefaultProps: function() {
-          return {number:0};
+          return {number:0, value:''};
       },
       changeNumber: function(e) {
           this.props.onChangeNumber(e.target.getAttribute('data-number'));
@@ -64,7 +76,7 @@
           return (
               <div className={"numberpicker"}>
                   <a onClick={this.changeNumber} data-number={this.props.number-1} className={"btn btn-default"}>&lt;</a>
-                  <span className="btn">{this.props.number}</span>
+                  <span className="btn">{this.props.value}</span>
                   <a onClick={this.changeNumber} data-number={this.props.number+1} className={"btn btn-default"}>&gt;</a>
               </div>
               );
@@ -92,8 +104,8 @@
        * @returns {{selectedDate: Date, show: boolean, onChangeDate: onChangeDate}}
        */
       getDefaultProps: function() {
-          return({selectedDate:new Date(), show:true, onChangeDate: function(date) {
-              console.log(date);
+          return({reservations:{}, selectedDate:new Date(), show:true, onChangeDate: function(date) {
+            console.log(date);
           }});
       },
       /**
@@ -125,21 +137,52 @@
           date.setMonth(month-1);
           this.setState({visibleDate:date});
       },
+
+      isUsed: function(date) {
+        var month = date.getMonth + 1;
+        var dateKey = date.getFullYear() + "-" + month + "-" + date.getDay();
+        return this.props.reservations[dateKey] != undefined;
+      },
+
       render: function () {
           var style = {display:(this.props.show?'block':'none')};
+          var visibleDate = this.state.visibleDate
+          var month_names = ["enero", "febrero", "marzo", "abril"," mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+          var monthpicker = month_names.map(function(month, i){
+              return <DayPicker 
+                        date={visibleDate}
+                        isUsed={this.isUsed}
+                        selectedDate={visibleDate}
+                        changeDate={this.onChangeVisibleDate} 
+                        selectDate={this.onChangeSelectedDate} />
+          }.bind(this));
           return (
               <div className="datepicker" style={style}>
                   <div className="datepicker-container">
-                      <NumberPicker number={this.state.visibleDate.getFullYear()} onChangeNumber={this.changeYear} />
-                      <NumberPicker number={this.state.visibleDate.getMonth()+1} onChangeNumber={this.changeMonth} />
-                      <DayPicker date={this.state.visibleDate} selectedDate={this.props.selectedDate} changeDate={this.onChangeVisibleDate} selectDate={this.onChangeSelectedDate} />
+                      {monthpicker}
                   </div>
               </div>
               );
       }
+      /*
+        <NumberPicker 
+          number={visibleDate.getFullYear()} 
+          value={visibleDate.getFullYear()} 
+          onChangeNumber={this.changeYear} />
+        <NumberPicker 
+          number={visibleDate.getMonth()+1}  
+          value={month_names[visibleDate.getMonth()]} 
+          onChangeNumber={this.changeMonth} />
+        <DayPicker 
+          date={visibleDate}
+          isUsed={this.isUsed}
+          selectedDate={visibleDate}
+          changeDate={this.onChangeVisibleDate} 
+          selectDate={this.onChangeSelectedDate} />
+      //*/
   });
 
-  var DayPicker = React.createClass(/** @lends {React.ReactComponent.prototype} */{
+  var DayPicker = React.createClass({
       /**
        *
        * @param {Date} date
@@ -147,16 +190,19 @@
       selectDay: function(date) {
           this.props.selectDate(date);
       },
+      isUsed : function(date) {
+          return this.props.isUsed(date);
+      },
       render: function (){
           var date=this.props.date,
-              beforeDaysCount = DateUtils.daysInMonthCount((date.getMonth()-1), date.getFullYear()),
+              beforeDaysCount = DateUtils.daysInMonthCount((date.getMonth() - 1), date.getFullYear()),
               firstDay = DateUtils.createNewDay(1, date.getTime()),
-              offset = (firstDay.getDay()===0?7:firstDay.getDay())- 1,
-              daysArray = DateUtils.getArrayByBoundary(beforeDaysCount-offset+1, beforeDaysCount);
+              offset = (firstDay.getDay() === 0 ? 7 : firstDay.getDay()) - 1,
+              daysArray = DateUtils.getArrayByBoundary(beforeDaysCount - offset + 1, beforeDaysCount);
 
           var previousMonthDays = daysArray.map(function(day){
               var thisDate = DateUtils.createNewDayMonth(day, date.getMonth()-1, date.getTime());
-              return <Day date={thisDate} week={1} changeDate={this.selectDay} />
+              return <Day date={thisDate} week={1} changeDate={this.selectDay} used={this.isUsed(thisDate)}/>
           }.bind(this));
 
           daysArray = DateUtils.getArrayByBoundary(1, DateUtils.daysInMonthCount(date.getMonth(), date.getFullYear()));
@@ -168,14 +214,14 @@
               if(date.getMonth()==this.props.selectedDate.getMonth() && date.getFullYear()==this.props.selectedDate.getFullYear()) {
                   selected = (day==this.props.selectedDate.getDate());
               }
-              return <Day selected={selected} date={thisDate} week={weekNumber} changeDate={this.selectDay} />
+              return <Day selected={selected} date={thisDate} week={weekNumber} changeDate={this.selectDay} used={this.isUsed(thisDate)} />
           }.bind(this));
 
-          daysArray = DateUtils.getArrayByBoundary(1, 42- previousMonthDays.length - actualMonthDays.length);
+          daysArray = DateUtils.getArrayByBoundary(1, 42 - previousMonthDays.length - actualMonthDays.length);
           var nextMonthDays = daysArray.map(function(day){
               var thisDate = DateUtils.createNewDayMonth(day, date.getMonth()+1, date.getTime()),
                   weekNumber = Math.ceil((previousMonthDays.length + actualMonthDays.length + day) / 7);
-              return <Day date={thisDate} week={weekNumber} changeDate={this.selectDay} />
+              return <Day date={thisDate} week={weekNumber} changeDate={this.selectDay} used={this.isUsed(thisDate)} />
           }.bind(this));
 
           return (
@@ -258,6 +304,7 @@
       render: function() {
           var className="day week-"+this.props.week+" dayInWeek-"+this.props.date.getDay();
           className += (this.props.selected?' selected':'');
+          className += (this.props.used?' used':'');
           return (
               <div className={className}>
                   <a href="#" onClick={this.handleClick}>{this.props.date.getDate()}</a>

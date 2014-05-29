@@ -15,6 +15,23 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+var apart_ids = []string{
+	"6309936",
+	"6340214",
+	"6340684",
+	"6357433",
+	"6424249",
+	"6428080",
+	"6444566",
+	"6564225",
+	"6569893",
+	"6611125",
+	"6613087",
+	"6617373",
+	"6640918",
+	"6640931",
+	"6640936"}
+
 type Apart struct {
 	Reserved string `datastore:",noindex" json:"reserved"`
 	Data     string `datastore:",noindex" json:"data"`
@@ -23,72 +40,144 @@ type Apart struct {
 }
 
 func init() {
-	http.HandleFunc("/rest/apart", apartRouter)
+	http.HandleFunc("/rest/apart", apartCRUD)
+	http.HandleFunc("/rest/apart/list", apartQuery)
+	http.HandleFunc("/rest/apart/fill", fillDB)
 	// look up gorilla
 }
 
-func apartRouter(w http.ResponseWriter, r *http.Request) {
+func fillDB(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
+	aparts := make([]*Apart, len(apart_ids))
+	errors := make([]error, len(apart_ids))
+
+	var apart_i, error_i int = 0, 0
+
+	for _, v := range apart_ids {
+		apart, e := createApartFromID(v, c)
+		if e != nil {
+			errors[error_i] = e
+			error_i++
+			continue
+		}
+		aparts[apart_i] = apart
+		apart_i++
+	}
+
+	serialize(w, aparts)
+}
+
+func apartQuery(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	apartKeys := []*datastore.Key{}
+
+	q := datastore.NewQuery("Apart")
+	for t := q.Run(c); ; {
+		var a Apart
+		key, err := t.Next(&a)
+		if err == datastore.Done {
+			break
+		}
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		apartKeys = append(apartKeys, key)
+	}
+
+	aparts := make([]Apart, len(apartKeys))
+
+	if e := datastore.GetMulti(c, apartKeys, aparts); e != nil {
+		http.Error(w, e.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	serialize(w, aparts)
+}
+
+func apartCRUD(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	id := r.URL.Query().Get("apart_id")
+	if id == "" {
+		http.Error(w, errors.New("Must provide an apart_id parameter").Error(), http.StatusBadRequest)
+		return
+	}
+
 	switch r.Method {
-	case "POST":
-		// scrap apart data
-		apart, e := fetchApartData(r, c)
-		if e != nil {
-			http.Error(w, e.Error(), http.StatusBadRequest)
-			return
-		}
 
-		// create new apart key
-		key := datastore.NewKey(c, "Apart", apart.Name, 0, nil)
-
-		// save new apart to datastore
-		_, e = datastore.Put(c, key, apart)
+	case "POST", "PUT":
+		apart, e := createApartFromID(id, c)
 		if e != nil {
 			http.Error(w, e.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// write json encoded apart to the response
-		if e := json.NewEncoder(w).Encode(apart); e != nil {
-			http.Error(w, e.Error(), http.StatusInternalServerError)
-			return
-		}
+		serialize(w, apart)
 	case "GET":
-
-		id := r.URL.Query().Get("apart_id")
-		if id == "" {
-			http.Error(w, errors.New("Must provide an apart_id parameter").Error(), http.StatusInternalServerError)
-			return
-		}
-
-		key := datastore.NewKey(c, "Apart", id, 0, nil)
-
-		// load apart from datastore
-		var apart Apart
-		if e := datastore.Get(c, key, &apart); e != nil {
+		apart, e := getApartFromID(id, c)
+		if e != nil {
 			http.Error(w, e.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// write json encoded apart to the response
-		if e := json.NewEncoder(w).Encode(apart); e != nil {
-			http.Error(w, e.Error(), http.StatusInternalServerError)
-			return
-		}
-
-	case "PUT":
+		serialize(w, apart)
 	case "DELETE":
+		e := deleteApartFromID(id, c)
+		if e != nil {
+			http.Error(w, e.Error(), http.StatusInternalServerError)
+			return
+		}
+
 	default:
 	}
 }
 
-func fetchApartData(r *http.Request, c appengine.Context) (*Apart, error) {
-
-	id := r.URL.Query().Get("apart_id")
-	if id == "" {
-		return nil, errors.New("Must provide an apart_id parameter")
+func serialize(w http.ResponseWriter, v interface{}) {
+	if e := json.NewEncoder(w).Encode(v); e != nil {
+		http.Error(w, e.Error(), http.StatusInternalServerError)
 	}
+}
+
+func deleteApartFromID(id string, c appengine.Context) error {
+	key := datastore.NewKey(c, "Apart", id, 0, nil)
+	return datastore.Delete(c, key)
+}
+
+func getApartFromID(id string, c appengine.Context) (*Apart, error) {
+	key := datastore.NewKey(c, "Apart", id, 0, nil)
+
+	// load apart from datastore
+	var apart Apart
+	if e := datastore.Get(c, key, &apart); e != nil {
+		return nil, e
+	}
+	return &apart, nil
+}
+
+func createApartFromID(id string, c appengine.Context) (*Apart, error) {
+
+	apart, e := fetchApartData(id, c)
+	if e != nil {
+		return nil, e
+	}
+
+	// create new apart key
+	key := datastore.NewKey(c, "Apart", apart.Name, 0, nil)
+
+	// save new apart to datastore
+	_, e = datastore.Put(c, key, apart)
+	if e != nil {
+		return nil, e
+	}
+
+	return apart, nil
+}
+
+func fetchApartData(id string, c appengine.Context) (*Apart, error) {
 
 	data, e := scrapApartData(id, c)
 	if e != nil {
