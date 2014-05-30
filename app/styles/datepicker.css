@@ -1,14 +1,26 @@
 div.datepicker-dates {
   position: relative;
-  float: left;
+}
+
+div.datepicker-dates-container {
+  position: relative;
+  display: inline-block;
+  margin: 10px;
   width: 150px;
   height: 100%;
 }
+
+div.datepicker-dates-label {
+  text-align: center;
+  margin-bottom: 5px;
+}
+
 div.datepicker-dates div.day {
   position: absolute;
   font-size: 16px;
   font-weight: lighter;
 }
+
 .dayInWeek-1 {
   left: 0
 }
@@ -48,34 +60,59 @@ div.datepicker-dates div.day {
 .week-6 {
   top: 120px;
 }
-.datepicker {
+
+.monthpicker {
   position: relative;
-  height: 175px;
+  height: 190px;
   width: 90%;
   z-index: 10;
   background-color: #fff;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.175);
   background-clip: padding-box;
   border-radius: 10px;
+  overflow: auto;
 }
 
-.datepicker .out .day a {
+.datepicker {
+  position: relative;
+  height: 245px;
+  width: 175px;
+  z-index: 10;
+  background-color: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.175);
+  background-clip: padding-box;
+  border-radius: 10px;
+  overflow: auto;
+}
+
+.datepicker .out .day a,
+.monthpicker .out .day a {
   color: gray;
 }
-.datepicker .day a {
+
+.datepicker .day a,
+.monthpicker .day a {
   width: 20px;
   display: block;
   text-align: center;
 }
-.datepicker .day a:hover {
+.datepicker .day a:hover,
+.monthpicker .day a:hover {
   text-decoration: none;
   background-color: #e0e0e0;
 }
-.datepicker .day.selected a {
+.datepicker .day.selected a,
+.monthpicker .day.selected a {
   background-color: #d3d3d3;
   color: green;
 }
-.datepicker .datapicker-month, .datepicker .datapicker-year {
+.datepicker .day.used a,
+.monthpicker .day.used a {
+  background-color: green;
+  color: black;
+}
+.datepicker .datapicker-month, 
+.datepicker .datapicker-year {
   text-align: center;
 }
 
@@ -83,6 +120,13 @@ div.datepicker-dates div.day {
   position: relative;
   padding-top: 1px;
 }
+
+.monthpicker-container {
+  position: relative;
+  padding-top: 1px;
+  width: 200%;
+}
+
 .datepicker-wrapper {
   position: absolute;
   margin-top: 5px;

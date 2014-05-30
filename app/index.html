@@ -11,17 +11,13 @@
 
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
     <link type="text/css" href="styles/datepicker.css" rel="stylesheet" />
+    <link type="text/css" href="styles/style.css" rel="stylesheet" />
   </head>
   <body>
 
     <div class="container">
-      <div id="example"></div>
-      <p>
-        <div id="datepicker"></div>
-      </p>
-      <p>
-        <div id="datepicker-input"></div>
-      </p>
+        <div id="new-apart-form"></div>
+        <div id="aparts-list"></div>
     </div>
 
     <script type="text/jsx">
@@ -57,20 +53,90 @@
                   type="text" 
                   placeholder="Nueva Referencia Apartamento Homelidays"
                   ref="apart_id" />
-                <input type="submit" value="Post" />
+                <input type="submit" value="Post" className="btn btn-primary" />
               </form>
             );
           }
       });
       
-      React.renderComponent(
-        <NewApartForm />,
-        document.getElementById('example')
-      );
+      var ApartCalendar = React.createClass({
+
+          loadApartCalendar: function() {
+
+            $.get(this.props.url)
+            .done(function(data) {
+              
+              data = $.parseJSON(data);
+              var reservations = $.parseJSON(data.reserved);
+              this.setState({reservations: reservations});
+
+            }.bind(this))
+            .fail(function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+            }.bind(this));
+          },
+
+          getInitialState: function() {
+            return {reservations:{}};
+          },
+
+          componentDidMount: function() {
+            this.loadApartCalendar();
+          },
+
+          render: function() {
+            return (<div className="apart">
+                      <h3>Referencia: {this.props.apart_id}</h3>
+                      <MonthPicker 
+                        reservations={this.state.reservations} 
+                        selectedDate={new Date()} />
+                    </div>);
+          }
+      });
+    
+      var Aparts = React.createClass({
+
+          loadAparts: function() {
+            $.get("../rest/apart/list")
+            .done(function(aparts) {
+              this.setState({aparts: $.parseJSON(aparts)});
+            }.bind(this))
+            .fail(function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+            }.bind(this));
+          },
+
+          getInitialState: function() {
+            return {aparts:[]};
+          },
+
+          componentDidMount: function() {
+            this.loadAparts();
+          },
+
+          render: function() {
+            var aparts = this.state.aparts.map(function(apart){
+                var reservations = $.parseJSON(apart.reserved);
+                var image = $.parseJSON(apart.data).property.imageUrls[0];
+                console.log(image);
+                return (<div className="apart">
+                          <img className="apart-img" src={image} />
+                          <h3 className="apart-id" >Referencia: {apart.id}</h3>
+                          <MonthPicker 
+                            reservations={reservations} 
+                            selectedDate={new Date()} />
+                        </div>);
+            }.bind(this));
+
+            return (<div>
+                      {aparts}
+                    </div>);
+          }
+      });
 
       React.renderComponent(
-        <DatePicker date={new Date()} />,
-        document.getElementById('datepicker')
+        <Aparts />,
+        document.getElementById('aparts-list')
       );
 
     </script>
