@@ -1,6 +1,9 @@
 /** @jsx React.DOM */
 
   var DateUtils = {
+
+    month_names : ["enero", "febrero", "marzo", "abril"," mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+
     /**
      * Gets count of days in current month.
      * @param {number} month January has number 1. February 2, ... and so on
@@ -72,6 +75,7 @@
   });
 
   var DatePicker = React.createClass({
+
       /**
        *
        * @param {Date} date
@@ -193,22 +197,43 @@ var MonthPicker = React.createClass({
       return newDate;
     },
 
-    componentDidUpdate: function() {
-      console.log(this.props.reservations);
+    checkIfUsedMonth: function(month) {
+      console.log(month);
+      var isUsed = false;
+      var alreadyChecked = [];
+      $.each(this.props.reservations, function(dateString, value) {
+
+        var reserved_month = parseInt(dateString.split('-')[1]);
+
+        if (alreadyChecked[reserved_month]) {
+          return true;
+        } else {
+          alreadyChecked[reserved_month] = true;
+        }
+
+        console.log(reserved_month === month);
+        isUsed = reserved_month == month;
+        return !isUsed;
+      });
+      return isUsed;
     },
 
     render: function() {
-        var month_names = ["enero", "febrero", "marzo", "abril"," mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
         var visibleDate = this.state.visibleDate;
+        console.log(DateUtils.month_names);
+        var months = $.grep(DateUtils.month_names, function(name, i) {
+          return this.checkIfUsedMonth(i + 1);
+        }.bind(this));
 
-        var months = month_names.map(function(month, i){
+        console.log("Used months : " + months);
+        months = months.map(function(month, i) {
               return  <DayPicker
                         date={new Date(visibleDate.getFullYear(), i, 1)}
                         isUsed={this.isUsed}
                         selectedDate={visibleDate}
                         selectDate={this.onChangeSelectedDate}
                         label={month}/>;
-          }.bind(this));
+        }.bind(this));
 
         return (<div className="monthpicker">
                   <div className="monthpicker-container">

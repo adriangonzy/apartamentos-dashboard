@@ -59,36 +59,22 @@
           }
       });
       
-      var ApartCalendar = React.createClass({
-
-          loadApartCalendar: function() {
-
-            $.get(this.props.url)
-            .done(function(data) {
-              
-              data = $.parseJSON(data);
-              var reservations = $.parseJSON(data.reserved);
-              this.setState({reservations: reservations});
-
-            }.bind(this))
-            .fail(function(xhr, status, err) {
-                console.error(this.props.url, status, err.toString());
-            }.bind(this));
-          },
+      var Apart = React.createClass({
 
           getInitialState: function() {
             return {reservations:{}};
           },
 
-          componentDidMount: function() {
-            this.loadApartCalendar();
-          },
-
           render: function() {
+            var apart = this.props.apart;
+                image = apart.data.property.imageUrls[0];
+            console.log(apart);
+            console.log(image);
             return (<div className="apart">
-                      <h3>Referencia: {this.props.apart_id}</h3>
-                      <MonthPicker 
-                        reservations={this.state.reservations} 
+                      <img className="apart-img" src={image} />
+                      <h3 className="apart-id" >Referencia: {apart.id}</h3>
+                      <MonthPicker
+                        reservations={apart.reserved} 
                         selectedDate={new Date()} />
                     </div>);
           }
@@ -116,16 +102,9 @@
 
           render: function() {
             var aparts = this.state.aparts.map(function(apart){
-                var reservations = $.parseJSON(apart.reserved);
-                var image = $.parseJSON(apart.data).property.imageUrls[0];
-                console.log(image);
-                return (<div className="apart">
-                          <img className="apart-img" src={image} />
-                          <h3 className="apart-id" >Referencia: {apart.id}</h3>
-                          <MonthPicker 
-                            reservations={reservations} 
-                            selectedDate={new Date()} />
-                        </div>);
+                apart.reserved = $.parseJSON(apart.reserved);
+                apart.data = $.parseJSON(apart.data);
+                return (<Apart apart={apart} />);
             }.bind(this));
 
             return (<div>
