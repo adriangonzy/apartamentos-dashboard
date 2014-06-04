@@ -4,6 +4,13 @@
 
     month_names : ["enero", "febrero", "marzo", "abril"," mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
 
+    compareDates: function(date1, date2) {
+       return date1 && date2 && 
+              date1.getFullYear()==date2.getFullYear() &&
+              date1.getMonth()==date2.getMonth() && 
+              date1.getDate()==date2.getDate();
+    },
+
     /**
      * Gets count of days in current month.
      * @param {number} month January has number 1. February 2, ... and so on
@@ -156,16 +163,22 @@
       }
   });
 
-var MonthPicker = React.createClass({
+var MonthBar = React.createClass({
     /**
      *
      * @returns {{selectedDate: Date, show: boolean, onChangeDate: onChangeDate}}
      */
     getDefaultProps: function() {
-        return({reservations:{}, selectedDate:new Date(), isUsed: function() {return false;}, onChangeDate: function(date) {
+
+        var endDate = new Date();
+        var newYear = endDate.getFullYear() + 1;
+        endDate.setFullYear(newYear);
+
+        return({reservations:{}, startDate: endDate, endDate: new Date(), selectedDate: new Date(), onChangeDate: function(date) {
           console.log(date);
         }});
     },
+
     /**
      *
      * @returns {{visibleDate: Date}}
@@ -190,49 +203,29 @@ var MonthPicker = React.createClass({
         return this.props.reservations[dateKey] != undefined;
     },
 
-    dateForMonth: function(date, month) {
-      var newDate = new Date();
-      newDate.setTime(date.getTime());
-      newDate.setMonth(month);
-      return newDate;
-    },
+    filterVisibleMonths: function(startDate, endDate) {
+        if (endDate < startDate) 
+          return DateUtils.month_names;
 
-    checkIfUsedMonth: function(month) {
-      console.log(month);
-      var isUsed = false;
-      var alreadyChecked = [];
-      $.each(this.props.reservations, function(dateString, value) {
+        if (startDate.getFullYear() < endDate.getFullYear()) 
+          return $.grep(DateUtils.month_names, function(name, i) {  
+              return startDate.getMonth() <= i;
+          });
 
-        var reserved_month = parseInt(dateString.split('-')[1]);
-
-        if (alreadyChecked[reserved_month]) {
-          return true;
-        } else {
-          alreadyChecked[reserved_month] = true;
-        }
-
-        console.log(reserved_month === month);
-        isUsed = reserved_month == month;
-        return !isUsed;
-      });
-      return isUsed;
+        return $.grep(DateUtils.month_names, function(name, i) {
+          return (startDate.getMonth() <= i && i <= endDate.getMonth());
+        });
     },
 
     render: function() {
         var visibleDate = this.state.visibleDate;
-        console.log(DateUtils.month_names);
-        var months = $.grep(DateUtils.month_names, function(name, i) {
-          return this.checkIfUsedMonth(i + 1);
-        }.bind(this));
+        var months = this.filterVisibleMonths(this.props.startDate, this.props.endDate);
 
-        console.log("Used months : " + months);
         months = months.map(function(month, i) {
               return  <DayPicker
-                        date={new Date(visibleDate.getFullYear(), i, 1)}
-                        isUsed={this.isUsed}
-                        selectedDate={visibleDate}
-                        selectDate={this.onChangeSelectedDate}
-                        label={month}/>;
+                        label={month}
+                        date={new Date(visibleDate.getFullYear(), DateUtils.month_names.indexOf(month), 1)}
+                        isUsed={this.isUsed} />;
         }.bind(this));
 
         return (<div className="monthpicker">
@@ -249,9 +242,7 @@ var MonthPicker = React.createClass({
        * @param {Date} date
        */
       getDefaultProps: function() {
-        return ({selectedDate:new Date(), isUsed: function() {return false;}, selectDate: function(date) {
-          console.log(date);
-        }});
+        return ({selectedDate:new Date(), isUsed: function() {return false;}, selectDate: function(date) { console.log(date);}});
       },
       selectDay: function(date) {
           this.props.selectDate(date);
@@ -273,14 +264,12 @@ var MonthPicker = React.createClass({
 
           daysArray = DateUtils.getArrayByBoundary(1, DateUtils.daysInMonthCount(date.getMonth(), date.getFullYear()));
           var actualMonthDays = daysArray.map(function(day) {
+              
               var thisDate = DateUtils.createNewDay(day, date.getTime()),
                   weekNumber = Math.ceil((day+offset) / 7),
-                  selected = false;
+                  selected = DateUtils.compareDates(thisDate, this.props.selectedDate);
 
-              if(date.getMonth()==this.props.selectedDate.getMonth() && date.getFullYear()==this.props.selectedDate.getFullYear()) {
-                  selected = (day==this.props.selectedDate.getDate());
-              }
-              return <Day selected={selected} date={thisDate} week={weekNumber} changeDate={this.selectDay} used={this.isUsed(thisDate)} />
+              return <Day date={thisDate} week={weekNumber} changeDate={this.selectDay} selected={selected} used={this.isUsed(thisDate)} />
           }.bind(this));
 
           daysArray = DateUtils.getArrayByBoundary(1, 42 - previousMonthDays.length - actualMonthDays.length);
@@ -354,7 +343,7 @@ var MonthPicker = React.createClass({
   });
 
 
-  var Day = React.createClass(/** @lends {React.ReactComponent.prototype} */{
+  var Day = React.createClass({
       /**
        *
        * @param e

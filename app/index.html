@@ -17,6 +17,7 @@
 
     <div class="container">
         <div id="new-apart-form"></div>
+        <div id="date-filters"></div>
         <div id="aparts-list"></div>
     </div>
 
@@ -68,14 +69,11 @@
           render: function() {
             var apart = this.props.apart;
                 image = apart.data.property.imageUrls[0];
-            console.log(apart);
-            console.log(image);
             return (<div className="apart">
                       <img className="apart-img" src={image} />
                       <h3 className="apart-id" >Referencia: {apart.id}</h3>
-                      <MonthPicker
-                        reservations={apart.reserved} 
-                        selectedDate={new Date()} />
+                      <MonthBar
+                        reservations={apart.reserved} />
                     </div>);
           }
       });
@@ -113,9 +111,27 @@
           }
       });
 
+      var DateFilter = React.createClass( {
+
+          render: function() {
+            return (<div className="date-filters">
+                      <div className="date-filter">
+                        <DatePickerInput className="date-filter" />
+                      </div>
+                      <div className="date-filter">
+                        <DatePickerInput className="date-filter" />
+                      </div>
+                    </div>);
+          }
+      });
+
       React.renderComponent(
         <Aparts />,
         document.getElementById('aparts-list')
+      );
+
+      React.renderComponent(<DateFilter />,
+        document.getElementById('date-filters')
       );
 
     </script>
