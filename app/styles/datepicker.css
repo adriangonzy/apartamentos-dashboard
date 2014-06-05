@@ -94,7 +94,7 @@ div.datepicker-dates div.day {
 
 .datepicker .out .day a,
 .monthpicker .out .day a {
-  color: gray;
+  color: rgba(122, 122, 122, 0.3);
 }
 
 .datepicker .day a,
