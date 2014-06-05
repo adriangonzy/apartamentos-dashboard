@@ -1,9 +1,10 @@
 div.datepicker-dates {
   position: relative;
+  width: 155px;
+  height: 145px;
 }
 
 div.datepicker-dates-container {
-  position: relative;
   display: inline-block;
   margin: 10px;
   width: 150px;
@@ -61,21 +62,27 @@ div.datepicker-dates div.day {
   top: 120px;
 }
 
+.half-day-right {
+
+}
+
 .monthpicker {
+  overflow-x: scroll; 
+  overflow-y:hidden;
+
   position: relative;
-  height: 190px;
-  width: 90%;
-  z-index: 10;
   background-color: #fff;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.175);
   background-clip: padding-box;
-  border-radius: 10px;
-  overflow: auto;
+}
+
+.monthpicker-container {
+  width: auto; 
+  white-space: nowrap
 }
 
 .datepicker {
   position: relative;
-  height: 245px;
   width: 175px;
   z-index: 10;
   background-color: #fff;
@@ -119,12 +126,6 @@ div.datepicker-dates div.day {
 .datepicker-container {
   position: relative;
   padding-top: 1px;
-}
-
-.monthpicker-container {
-  position: relative;
-  padding-top: 1px;
-  width: 200%;
 }
 
 .datepicker-wrapper {

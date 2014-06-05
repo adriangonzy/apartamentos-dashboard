@@ -15,14 +15,13 @@
   </head>
   <body>
 
-    <div class="container">
-        <div id="new-apart-form"></div>
-        <div id="date-filters"></div>
-        <div id="aparts-list"></div>
+    <div id="container" class="container">
     </div>
 
     <script type="text/jsx">
       /** @jsx React.DOM */
+
+      var Homelidays_URL = "http://www.homelidays.com/hebergement/p";
 
       var NewApartForm = React.createClass({
           postNewApart: function(apart_id) {
@@ -51,6 +50,7 @@
             return (
               <form className="apartForm" onSubmit={this.handleSubmit}>
                 <input 
+                  className="form-control"
                   type="text" 
                   placeholder="Nueva Referencia Apartamento Homelidays"
                   ref="apart_id" />
@@ -67,12 +67,18 @@
           },
 
           render: function() {
-            var apart = this.props.apart;
+            var apart = this.props.apart,
                 image = apart.data.property.imageUrls[0];
             return (<div className="apart">
                       <img className="apart-img" src={image} />
-                      <h3 className="apart-id" >Referencia: {apart.id}</h3>
+                      <div className="apart-info">
+                        <p>{apart.description}</p>
+                        <a href={Homelidays_URL + apart.id} target={"_blank"}>
+                          <p className="apart-id" >Referencia: {apart.id}</p>
+                        </a>
+                      </div>
                       <MonthBar
+                        period={this.props.period}
                         reservations={apart.reserved} />
                     </div>);
           }
@@ -81,13 +87,23 @@
       var Aparts = React.createClass({
 
           loadAparts: function() {
+            console.log("Started loading aparts !");
             $.get("../rest/apart/list")
             .done(function(aparts) {
-              this.setState({aparts: $.parseJSON(aparts)});
+              this.setState({aparts: this.parseAparts(aparts)});
             }.bind(this))
             .fail(function(xhr, status, err) {
                 console.error(this.props.url, status, err.toString());
             }.bind(this));
+          },
+
+          parseAparts: function(aparts) {
+            var parsedAparts = $.parseJSON(aparts);
+            $.each(parsedAparts, function(i, apart) {
+                apart.reserved = $.parseJSON(apart.reserved);
+                apart.data = $.parseJSON(apart.data);
+            });
+            return parsedAparts;
           },
 
           getInitialState: function() {
@@ -100,38 +116,71 @@
 
           render: function() {
             var aparts = this.state.aparts.map(function(apart){
-                apart.reserved = $.parseJSON(apart.reserved);
-                apart.data = $.parseJSON(apart.data);
-                return (<Apart apart={apart} />);
+                return (<Apart 
+                          period={this.props.period}
+                          apart={apart} />);
             }.bind(this));
 
-            return (<div>
+            return (<div className="aparts">
                       {aparts}
                     </div>);
           }
       });
 
-      var DateFilter = React.createClass( {
-
+      var DateFilter = React.createClass({
+          changeStart: function(date) {
+            this.props.onChangePeriod({start: date, end: this.props.period.end});
+          },
+          changeEnd: function(date) {
+            this.props.onChangePeriod({start: this.props.period.start, end: date});
+          },
           render: function() {
-            return (<div className="date-filters">
-                      <div className="date-filter">
-                        <DatePickerInput className="date-filter" />
+            return (<form className="form-inline date-filters" role="form">
+                      <div className="date-filter form-group">
+                        <label className="date-picker-label">check-in</label>
+                        <DatePickerInput
+                          date={this.props.period.start}
+                          onChangeDate={this.changeStart}/>
                       </div>
-                      <div className="date-filter">
-                        <DatePickerInput className="date-filter" />
+                      <div className="date-filter form-group">
+                        <label className="date-picker-label">check-out</label>
+                        <DatePickerInput 
+                          date={this.props.period.end}
+                          onChangeDate={this.changeEnd}/>
                       </div>
-                    </div>);
+                    </form>);
           }
       });
 
-      React.renderComponent(
-        <Aparts />,
-        document.getElementById('aparts-list')
-      );
+      var ApartsFilter = React.createClass({
 
-      React.renderComponent(<DateFilter />,
-        document.getElementById('date-filters')
+        getInitialState: function() {
+          var endDate = new Date();
+          var newYear = endDate.getFullYear() + 1;
+          endDate.setFullYear(newYear);
+          console.log(endDate);
+          return {period: {start: new Date(), end: endDate}};
+        },
+
+        onChangePeriod: function(period) {
+          this.setState({period: period});
+        },
+
+        render: function() {
+          console.log(this.state.period);
+          return (<div>
+                    <DateFilter
+                      period={this.state.period}
+                      onChangePeriod={this.onChangePeriod}/>
+                    <Aparts 
+                      period={this.state.period}/>
+                  </div>);
+        }
+      });
+
+      React.renderComponent(
+        <ApartsFilter />,
+        document.getElementById('container')
       );
 
     </script>

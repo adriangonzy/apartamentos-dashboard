@@ -5,6 +5,7 @@ import (
 
 	"errors"
 	"regexp"
+	"strings"
 
 	"encoding/json"
 
@@ -33,10 +34,11 @@ var apart_ids = []string{
 	"6640936"}
 
 type Apart struct {
-	Reserved string `datastore:",noindex" json:"reserved"`
-	Data     string `datastore:",noindex" json:"data"`
-	UnitId   string `json:"unit_id"`
-	Name     string `json:"id"`
+	Reserved    string `datastore:",noindex" json:"reserved"`
+	Data        string `datastore:",noindex" json:"data"`
+	UnitId      string `json:"unit_id"`
+	Name        string `json:"id"`
+	Description string `json:"description"`
 }
 
 func init() {
@@ -189,11 +191,14 @@ func fetchApartData(id string, c appengine.Context) (*Apart, error) {
 		return nil, errors.New("No data was found for " + id)
 	}
 
+	c.Debugf("%v", data[1])
+
 	return &Apart{
-		Reserved: data[0],
-		Data:     data[2],
-		UnitId:   getUnitId(data[2], c),
-		Name:     id,
+		Reserved:    data[0],
+		Data:        data[2],
+		UnitId:      getUnitId(data[2], c),
+		Name:        id,
+		Description: data[1],
 	}, nil
 }
 
@@ -220,6 +225,8 @@ func scrapApartData(id string, c appengine.Context) ([]string, error) {
 	// TODO: check that first is not poisonous
 	data := doc.Find("body > script").First().Text()
 
+	description := strings.TrimSpace(doc.Find(".property-title").First().Text())
+
 	// parse first 3 json maps using capture groups
 	subMatches := regexp.MustCompile(`({".*})\s*;`).FindAllStringSubmatch(data, -1)
 
@@ -229,8 +236,8 @@ func scrapApartData(id string, c appengine.Context) ([]string, error) {
 
 	apartData := make([]string, 3)
 	apartData[0] = subMatches[0][1]
-	apartData[1] = subMatches[1][1]
 	apartData[2] = subMatches[2][1]
+	apartData[1] = description
 
 	return apartData, nil
 }

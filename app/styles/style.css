@@ -2,15 +2,39 @@
 	display: inline-block;
 }
 
+.date-picker-label {
+	margin: 0 10px 10px 10px;
+	font-size: 15px;
+}
+
+.date-filter input {
+	text-align: center;
+}
+
+.date-filters .form-group {
+	margin-right: 20px;
+}
+
+.date-filters {
+	text-align: center;
+	margin: 40px 0;
+}
+
 .apart {
 	margin-top: 10px;
 }
 
 .apart-id {
-	display: inline-block;
-	margin-left: 20px;
 }
 
 .apart-img {
-	display: inline-block;
+}
+
+.apart .apart-img {
+  height: 100px;
+}
+
+.apart-info {
+  display: inline-block;
+  margin-left: 15px;
 }

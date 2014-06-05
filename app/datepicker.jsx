@@ -82,7 +82,6 @@
   });
 
   var DatePicker = React.createClass({
-
       /**
        *
        * @param {Date} date
@@ -173,8 +172,7 @@ var MonthBar = React.createClass({
         var endDate = new Date();
         var newYear = endDate.getFullYear() + 1;
         endDate.setFullYear(newYear);
-
-        return({reservations:{}, startDate: endDate, endDate: new Date(), selectedDate: new Date(), onChangeDate: function(date) {
+        return({reservations:{}, period: {start: new Date(), end: endDate}, selectedDate: new Date(), onChangeDate: function(date) {
           console.log(date);
         }});
     },
@@ -219,7 +217,7 @@ var MonthBar = React.createClass({
 
     render: function() {
         var visibleDate = this.state.visibleDate;
-        var months = this.filterVisibleMonths(this.props.startDate, this.props.endDate);
+        var months = this.filterVisibleMonths(this.props.period.start, this.props.period.end);
 
         months = months.map(function(month, i) {
               return  <DayPicker
@@ -304,7 +302,7 @@ var MonthBar = React.createClass({
        * @returns {{date: Date}}
        */
       getDefaultProps: function() {
-          return({date:new Date()});
+          return({date:new Date(), onChangeDate: function(date){console.log(date)}});
       },
       /**
        *
@@ -326,13 +324,15 @@ var MonthBar = React.createClass({
       onChangeDate: function(date) {
           this.props.date = date;
           this.setState({show:false});
+          this.props.onChangeDate(date);
       },
+
       render: function() {
           var style={position:'fixed', top:0,left:0, width:'100%', height:'100%', display:(this.state.show?'block':'none')};
 
           return (
               <div>
-                  <input type="text" onFocus={this.showDatePicker} value={this.props.date} />
+                  <input className="form-control" type="text" onFocus={this.showDatePicker} value={this.props.date.toLocaleDateString()} />
                   <div style={style} onClick={this.hideDatePicker}></div>
                   <div className="datepicker-wrapper">
                       <DatePicker selectedDate={this.props.date} show={this.state.show} onChangeDate={this.onChangeDate}  />
