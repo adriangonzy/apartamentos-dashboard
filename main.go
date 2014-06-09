@@ -133,7 +133,7 @@ func apartCRUD(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, e.Error(), http.StatusInternalServerError)
 			return
 		}
-
+		w.WriteHeader(200)
 	default:
 	}
 }

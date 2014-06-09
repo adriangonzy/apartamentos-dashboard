@@ -21,7 +21,7 @@
 }
 
 .apart {
-	margin-top: 10px;
+	margin-top: 20px;
 }
 
 .apart-id {
@@ -37,4 +37,35 @@
 .apart-info {
   display: inline-block;
   margin-left: 15px;
+  vertical-align: middle;
+}
+
+.apart-info .btn {
+	margin-right: 10px;
+}
+
+.day.am-reserved a::before {
+	position: absolute;
+	display: block;
+	content: "";
+	opacity: 0.8;
+	border-bottom: 0px solid transparent;
+	bottom: 0;
+	border-bottom-width: 22px;
+	border-left: 20px solid green;
+}
+
+.day.pm-reserved a::after {
+	position: absolute;
+	display: block;
+	content: "";
+	opacity: 0.8;
+	border-top: 0px solid transparent;
+	bottom: 0;
+	border-top-width: 22px;
+	border-right: 20px solid green;
+}
+
+.searched {
+	background-color: rgba(252, 242, 135, 0.85);
 }

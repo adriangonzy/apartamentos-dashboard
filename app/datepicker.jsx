@@ -5,10 +5,7 @@
     month_names : ["enero", "febrero", "marzo", "abril"," mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
 
     compareDates: function(date1, date2) {
-       return date1 && date2 && 
-              date1.getFullYear()==date2.getFullYear() &&
-              date1.getMonth()==date2.getMonth() && 
-              date1.getDate()==date2.getDate();
+      return date1.setHours(0,0,0,0).getTime() == date2.setHours(0,0,0,0).getTime();
     },
 
     /**
@@ -187,18 +184,46 @@ var MonthBar = React.createClass({
         return ({visibleDate:date});
     },
 
-   onChangeSelectedDate: function(date) {
+    onChangeSelectedDate: function(date) {
         this.setState({visibleDate:date});
         this.props.onChangeDate(date);
     },
 
-   isUsed: function(date) {
-        var month = date.getMonth() + 1;
-        var day = date.getDate();
-        month = (month < 10 ? '0' : '') + month;
-        day = (day < 10 ? '0' : '') + day;
-        var dateKey = date.getFullYear() + "-" + month + "-" + day;
-        return this.props.reservations[dateKey] != undefined;
+    getDateKey: function(date) {
+      var month = date.getMonth() + 1;
+      var day = date.getDate();
+      month = (month < 10 ? '0' : '') + month;
+      day = (day < 10 ? '0' : '') + day;
+      var dateKey = date.getFullYear() + "-" + month + "-" + day;
+      return dateKey;
+    },
+
+    isUsed: function(date) {
+      return this.props.reservations[this.getDateKey(date)] != undefined;
+    },
+
+    isReservationStart: function(date) {
+      var dateKey = this.getDateKey(date);
+      var isStart = false;
+      $.each(this.props.weeks, function(k, reservation) {
+        if (reservation.checkinDate === dateKey) {
+          isStart = true;
+          return false;
+        }
+      });
+      return isStart;
+    },
+
+    isReservationEnd: function(date) {
+      var dateKey = this.getDateKey(date);
+      var isEnd = false;
+      $.each(this.props.weeks, function(k, reservation) {
+        if (reservation.checkoutDate === dateKey) {
+          isEnd = true;
+          return false;
+        }
+      });
+      return isEnd;
     },
 
     filterVisibleMonths: function(startDate, endDate) {
@@ -215,6 +240,15 @@ var MonthBar = React.createClass({
         });
     },
 
+    inSearchPeriod: function(date) {
+        var start = new Date(this.props.period.start.getTime()), 
+            end = new Date(this.props.period.end.getTime());
+        start.setHours(0,0,0,0);
+        end.setHours(0,0,0,0);
+        date.setHours(0,0,0,0);
+        return start <= date && end >= date;
+    },
+
     render: function() {
         var visibleDate = this.state.visibleDate;
         var months = this.filterVisibleMonths(this.props.period.start, this.props.period.end);
@@ -223,7 +257,10 @@ var MonthBar = React.createClass({
               return  <DayPicker
                         label={month}
                         date={new Date(visibleDate.getFullYear(), DateUtils.month_names.indexOf(month), 1)}
-                        isUsed={this.isUsed} />;
+                        inSearch={this.inSearchPeriod}
+                        isUsed={this.isUsed}
+                        isStart={this.isReservationStart}
+                        isEnd={this.isReservationEnd} />;
         }.bind(this));
 
         return (<div className="monthpicker">
@@ -240,13 +277,16 @@ var MonthBar = React.createClass({
        * @param {Date} date
        */
       getDefaultProps: function() {
-        return ({selectedDate:new Date(), isUsed: function() {return false;}, selectDate: function(date) { console.log(date);}});
+        return ({ selectedDate:new Date(), 
+                  isUsed: function() {return false;}, 
+                  isStart: function() {return false;},
+                  isEnd: function() {return false;},
+                  inSearch: function() {return false;},
+                  isSelected: function() {return false;},
+                  selectDate: function(date) { console.log(date);}});
       },
       selectDay: function(date) {
           this.props.selectDate(date);
-      },
-      isUsed : function(date) {
-          return this.props.isUsed(date);
       },
       render: function (){
           var date=this.props.date,
@@ -265,9 +305,17 @@ var MonthBar = React.createClass({
               
               var thisDate = DateUtils.createNewDay(day, date.getTime()),
                   weekNumber = Math.ceil((day+offset) / 7),
-                  selected = DateUtils.compareDates(thisDate, this.props.selectedDate);
+                  selected = this.props.isSelected(thisDate, date);
 
-              return <Day date={thisDate} week={weekNumber} changeDate={this.selectDay} selected={selected} used={this.isUsed(thisDate)} />
+              return <Day 
+                        date={thisDate} 
+                        week={weekNumber} 
+                        changeDate={this.selectDay} 
+                        selected={selected}
+                        inSearch={this.props.inSearch(thisDate)}
+                        used={this.props.isUsed(thisDate)}
+                        start={this.props.isStart(thisDate)}
+                        end={this.props.isEnd(thisDate)} />
           }.bind(this));
 
           daysArray = DateUtils.getArrayByBoundary(1, 42 - previousMonthDays.length - actualMonthDays.length);
@@ -327,6 +375,10 @@ var MonthBar = React.createClass({
           this.props.onChangeDate(date);
       },
 
+      isSelected: function(date1, date2) {
+        return DateUtils.compareDates(date1, date2);
+      },
+
       render: function() {
           var style={position:'fixed', top:0,left:0, width:'100%', height:'100%', display:(this.state.show?'block':'none')};
 
@@ -335,7 +387,7 @@ var MonthBar = React.createClass({
                   <input className="form-control" type="text" onFocus={this.showDatePicker} value={this.props.date.toLocaleDateString()} />
                   <div style={style} onClick={this.hideDatePicker}></div>
                   <div className="datepicker-wrapper">
-                      <DatePicker selectedDate={this.props.date} show={this.state.show} onChangeDate={this.onChangeDate}  />
+                      <DatePicker isSelected={this.isSelected} selectedDate={this.props.date} show={this.state.show} onChangeDate={this.onChangeDate}  />
                   </div>
               </div>
               );
@@ -345,7 +397,6 @@ var MonthBar = React.createClass({
 
   var Day = React.createClass({
       /**
-       *
        * @param e
        */
       handleClick: function(e) {
@@ -353,7 +404,6 @@ var MonthBar = React.createClass({
           this.props.changeDate(this.props.date);
       },
       /**
-       *
        * @returns {{selected: boolean}}
        */
       getDefaultProps: function() {
@@ -361,8 +411,14 @@ var MonthBar = React.createClass({
       },
       render: function() {
           var className="day week-"+this.props.week+" dayInWeek-"+this.props.date.getDay();
+
           className += (this.props.selected?' selected':'');
-          className += (this.props.used?' used':'');
+          // only needed for start date
+          className += (this.props.used && !this.props.start?' used':'');
+          className += (this.props.start ?' pm-reserved':'');
+          className += (this.props.end ?' am-reserved':'');
+          className += (this.props.inSearch ?' searched':'');
+
           return (
               <div className={className}>
                   <a href="#" onClick={this.handleClick}>{this.props.date.getDate()}</a>

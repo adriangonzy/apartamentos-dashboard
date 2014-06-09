@@ -19,17 +19,15 @@
     </div>
 
     <script type="text/jsx">
-      /** @jsx React.DOM */
-
-      var Homelidays_URL = "http://www.homelidays.com/hebergement/p";
-
+    /** @jsx React.DOM */
+      
       var NewApartForm = React.createClass({
           postNewApart: function(apart_id) {
             $.post("/rest/apart?apart_id=" + apart_id)
-            .done(function(data) {
+            .done(function() {
               console.log("SUCCESS");
             })
-            .fail(function(data) {
+            .fail(function() {
               console.log("FAIL");
             })
           },
@@ -47,44 +45,105 @@
             return false;
           },
           render: function() {
-            return (
-              <form className="apartForm" onSubmit={this.handleSubmit}>
-                <input 
-                  className="form-control"
-                  type="text" 
-                  placeholder="Nueva Referencia Apartamento Homelidays"
-                  ref="apart_id" />
-                <input type="submit" value="Post" className="btn btn-primary" />
-              </form>
-            );
+            return (<form className="apartForm" onSubmit={this.handleSubmit}>
+                      <input 
+                        className="form-control"
+                        type="text" 
+                        placeholder="Nueva Referencia Apartamento Homelidays"
+                        ref="apart_id" />
+                      <input type="submit" value="Post" className="btn btn-primary" />
+                    </form>);
           }
       });
+
+      var Homelidays_URL = "http://www.homelidays.com/hebergement/p";
       
       var Apart = React.createClass({
 
           getInitialState: function() {
-            return {reservations:{}};
+            return {loading: false, deleting: false};
+          },
+
+          onDelete: function() {
+            this.props.onDelete(this.props.apart.id);
+            this.setState({deleting: true});
+          },
+
+          onUpdate: function() {
+            this.props.onUpdate(this.props.apart.id);
+            this.setState({loading: true});
+          },
+
+          componentWillReceiveProps: function(nextProps) {
+            this.setState({loading: false, deleting: false});
           },
 
           render: function() {
             var apart = this.props.apart,
-                image = apart.data.property.imageUrls[0];
-            return (<div className="apart">
+                image = apart.data.property.imageUrls[0],
+                apartClassName = "apart" + (this.props.isAvailable ? " available" : "");
+            return (<div className={apartClassName}>
                       <img className="apart-img" src={image} />
                       <div className="apart-info">
                         <p>{apart.description}</p>
                         <a href={Homelidays_URL + apart.id} target={"_blank"}>
                           <p className="apart-id" >Referencia: {apart.id}</p>
                         </a>
+                        <p>
+                        <button 
+                          type="button" 
+                          onClick={this.onUpdate} 
+                          className="btn btn-info" 
+                          disabled={this.state.loading ? "disabled":""}>
+                          {this.state.loading ? "actualizando...":"actualizar"}
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={this.onDelete} 
+                          className="btn btn-danger"
+                          disabled={this.state.deleting ? "disabled":""}>
+                          {this.state.deleting ? "suprimiendo...":"suprimir"}
+                        </button>
+                        </p>
                       </div>
                       <MonthBar
                         period={this.props.period}
-                        reservations={apart.reserved} />
+                        reservations={apart.reserved}
+                        weeks={apart.data.availabilityCalendar.reservations} />
                     </div>);
           }
       });
     
       var Aparts = React.createClass({
+
+          parseAparts: function(aparts) {
+            var parsedAparts = $.parseJSON(aparts);
+            $.each(parsedAparts, function(i, apart) {
+                apart = this.parseApart(apart);
+            }.bind(this));
+            return parsedAparts;
+          },
+
+          parseApart: function(apart) {
+            apart.reserved = $.parseJSON(apart.reserved);
+            apart.data = $.parseJSON(apart.data);
+            return apart;
+          },
+
+          getApartIndexFromID: function(apart_id) {
+            var apart_index = -1;
+            $.each(this.state.aparts, function(i, apart) {
+              if (apart && apart.id == apart_id) {
+                apart_index = i;
+                return false;
+              }
+            });
+            if (apart_index < 0) {
+              console.log("apart " + apart_id + " not found");
+              return;
+            } else 
+              return apart_index;
+          },
 
           loadAparts: function() {
             console.log("Started loading aparts !");
@@ -93,17 +152,38 @@
               this.setState({aparts: this.parseAparts(aparts)});
             }.bind(this))
             .fail(function(xhr, status, err) {
-                console.error(this.props.url, status, err.toString());
+              console.error(this.props.url, status, err.toString());
             }.bind(this));
           },
 
-          parseAparts: function(aparts) {
-            var parsedAparts = $.parseJSON(aparts);
-            $.each(parsedAparts, function(i, apart) {
-                apart.reserved = $.parseJSON(apart.reserved);
-                apart.data = $.parseJSON(apart.data);
-            });
-            return parsedAparts;
+          onDeleteApart: function(apart_id) {
+            $.ajax({type: "DELETE", url: "/rest/apart?apart_id=" + apart_id})
+            .done(function() {
+
+              var apart_index = this.getApartIndexFromID(apart_id);
+              delete this.state.aparts[apart_index];
+              this.setState({aparts: this.state.aparts});
+
+            }.bind(this))
+            .fail(function(xhr, status, err) {
+              console.error("error deleting apart " + apart_id, status, err.toString());
+            }.bind(this));
+          },
+
+          onUpdateApart: function(apart_id) {
+            $.post("/rest/apart?apart_id=" + apart_id)
+            .done(function(apart) {
+              
+              apart = $.parseJSON(apart);
+              apart = this.parseApart(apart);
+              var apart_index = this.getApartIndexFromID(apart_id);
+              this.state.aparts[apart_index] = apart;
+              this.setState({aparts: this.state.aparts});
+
+            }.bind(this))
+            .fail(function(xhr, status, err) {
+              console.error("error updating apart " + apart_id, status, err.toString());
+            }.bind(this));
           },
 
           getInitialState: function() {
@@ -114,9 +194,56 @@
             this.loadAparts();
           },
 
+          isAvailable: function(apart) {
+            var start = this.props.period.start,
+                end = this.props.period.end,
+                weeks = apart.data.availabilityCalendar.reservations;
+
+            var parseDate = function(dateStr) {
+              var d = dateStr.split("-");
+              var parsedDate = new Date();
+              parsedDate.setFullYear(parseInt(d[0]));
+              parsedDate.setMonth(parseInt(d[1]));
+              parsedDate.setDate(parseInt(d[2]));
+              parsedDate.setHours(0,0,0,0);
+              return parsedDate;
+            };
+
+            var available = true;
+            $.each(weeks, function(k, res) {
+
+              var checkin = parseDate(res.checkinDate),
+                  checkout = parseDate(res.checkoutDate);
+
+              if (checkin <= start && start <= checkout) {
+                available = false;
+                return false;
+              }
+
+              if (checkin <= end && end <= checkout) {
+                available = false;
+                return false;
+              }
+
+              if (checkin <= start && checkin <= end) {
+                available = false;
+                return false; 
+              }
+
+              return true;
+            });
+            
+            console.log("apart id: " + apart.id + " " + (available ? "available" : "un-available"));
+
+            return available;
+          },
+
           render: function() {
             var aparts = this.state.aparts.map(function(apart){
-                return (<Apart 
+                return (<Apart
+                          isAvailable={this.isAvailable(apart)}
+                          onUpdate={this.onUpdateApart}
+                          onDelete={this.onDeleteApart}
                           period={this.props.period}
                           apart={apart} />);
             }.bind(this));
