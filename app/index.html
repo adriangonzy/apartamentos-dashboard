@@ -215,25 +215,36 @@
               var checkin = parseDate(res.checkinDate),
                   checkout = parseDate(res.checkoutDate);
 
+              console.log(checkin.toLocaleDateString());
+              console.log(checkout.toLocaleDateString());
+              console.log(start.toLocaleDateString());
+              console.log(end.toLocaleDateString());
+
+              console.log("--------------------");
+
               if (checkin <= start && start <= checkout) {
+                console.log("start in res " + checkin.toLocaleDateString() + " <= " + start.toLocaleDateString() + " && " + start.toLocaleDateString() + " <= " + checkout.toLocaleDateString());
                 available = false;
                 return false;
               }
 
               if (checkin <= end && end <= checkout) {
+                console.log("end in res " + checkin.toLocaleDateString() + " <= " + end.toLocaleDateString() + " && " + end.toLocaleDateString() + " <= " + checkout.toLocaleDateString());
                 available = false;
                 return false;
               }
 
-              if (checkin <= start && checkin <= end) {
+              if (start <= checkin && checkin <= end && start <= checkout && checkout <= end) {
+                console.log("res between start and end " + start.toLocaleDateString() + " <= " + checkin.toLocaleDateString() + " && " + checkin.toLocaleDateString() + " <= " + end.toLocaleDateString() + " && " + start.toLocaleDateString() + " <= " + checkout.toLocaleDateString() + " && " + checkout.toLocaleDateString() + " <= " + end.toLocaleDateString());
                 available = false;
                 return false; 
               }
 
               return true;
             });
-            
+
             console.log("apart id: " + apart.id + " " + (available ? "available" : "un-available"));
+            console.log("-------------------------");
 
             return available;
           },
