@@ -81,7 +81,7 @@
           render: function() {
             var apart = this.props.apart,
                 image = apart.data.property.imageUrls[0],
-                apartClassName = "apart" + (this.props.isAvailable ? " available" : "");
+                apartClassName = "apart" + (this.props.isAvailable ? "" : " unavailable");
             return (<div className={apartClassName}>
                       <img className="apart-img" src={image} />
                       <div className="apart-info">
@@ -203,39 +203,26 @@
               var d = dateStr.split("-");
               var parsedDate = new Date();
               parsedDate.setFullYear(parseInt(d[0]));
-              parsedDate.setMonth(parseInt(d[1]));
+              parsedDate.setMonth(parseInt(d[1]) - 1);
               parsedDate.setDate(parseInt(d[2]));
               parsedDate.setHours(0,0,0,0);
               return parsedDate;
             };
 
-            var available = true;
+            var available = start <= end;
             $.each(weeks, function(k, res) {
-
               var checkin = parseDate(res.checkinDate),
                   checkout = parseDate(res.checkoutDate);
 
-              console.log(checkin.toLocaleDateString());
-              console.log(checkout.toLocaleDateString());
-              console.log(start.toLocaleDateString());
-              console.log(end.toLocaleDateString());
-
-              console.log("--------------------");
-
               if (checkin <= start && start <= checkout) {
-                console.log("start in res " + checkin.toLocaleDateString() + " <= " + start.toLocaleDateString() + " && " + start.toLocaleDateString() + " <= " + checkout.toLocaleDateString());
                 available = false;
                 return false;
               }
-
               if (checkin <= end && end <= checkout) {
-                console.log("end in res " + checkin.toLocaleDateString() + " <= " + end.toLocaleDateString() + " && " + end.toLocaleDateString() + " <= " + checkout.toLocaleDateString());
                 available = false;
                 return false;
               }
-
               if (start <= checkin && checkin <= end && start <= checkout && checkout <= end) {
-                console.log("res between start and end " + start.toLocaleDateString() + " <= " + checkin.toLocaleDateString() + " && " + checkin.toLocaleDateString() + " <= " + end.toLocaleDateString() + " && " + start.toLocaleDateString() + " <= " + checkout.toLocaleDateString() + " && " + checkout.toLocaleDateString() + " <= " + end.toLocaleDateString());
                 available = false;
                 return false; 
               }
@@ -250,17 +237,33 @@
           },
 
           render: function() {
-            var aparts = this.state.aparts.map(function(apart){
-                return (<Apart
-                          isAvailable={this.isAvailable(apart)}
-                          onUpdate={this.onUpdateApart}
-                          onDelete={this.onDeleteApart}
-                          period={this.props.period}
-                          apart={apart} />);
-            }.bind(this));
+            var aparts = {available: [], unavailable: []};
+            for (var i = this.state.aparts.length - 1; i >= 0; i--) {
+              
+              var apart = this.state.aparts[i];
+              if (this.isAvailable(apart)) {
+                aparts.available.push(<Apart
+                                        isAvailable={this.isAvailable(apart)}
+                                        onUpdate={this.onUpdateApart}
+                                        onDelete={this.onDeleteApart}
+                                        period={this.props.period}
+                                        apart={apart} />);
+              } else {
+                aparts.unavailable.push(<Apart
+                                        isAvailable={this.isAvailable(apart)}
+                                        onUpdate={this.onUpdateApart}
+                                        onDelete={this.onDeleteApart}
+                                        period={this.props.period}
+                                        apart={apart} />);
+              }
+            };
 
             return (<div className="aparts">
-                      {aparts}
+                      {aparts.available.length > 0 ? <h2>Disponibles</h2> : null}
+                      {aparts.available}
+                      <br></br>
+                      <h2>No Disponibles</h2>
+                      {aparts.unavailable}
                     </div>);
           }
       });
@@ -294,8 +297,8 @@
 
         getInitialState: function() {
           var endDate = new Date();
-          var newYear = endDate.getFullYear() + 1;
-          endDate.setFullYear(newYear);
+          var newDate = endDate.getDate() + 7;
+          endDate.setDate(newDate);
           console.log(endDate);
           return {period: {start: new Date(), end: endDate}};
         },

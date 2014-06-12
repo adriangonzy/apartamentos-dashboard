@@ -22,22 +22,33 @@
 
 .apart {
 	margin-top: 20px;
+	background-color: #fff;
+  	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.175);
+  	background-clip: padding-box;
 }
 
-.apart-id {
-}
-
-.apart-img {
+.apart .monthpicker {
+	display: inline-block;
+	vertical-align: middle;
+	width: 40%;
+	min-width: 340px;
+	border-left: 1px solid rgba(0, 0, 0, 0.175);
 }
 
 .apart .apart-img {
-  height: 100px;
+  height: 160px;
+  width: 210px;
+  margin-left: 15px;
+}
+
+.apart.unavailable {
 }
 
 .apart-info {
   display: inline-block;
   margin-left: 15px;
   vertical-align: middle;
+  width: 38%;
 }
 
 .apart-info .btn {
