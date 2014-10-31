@@ -101,7 +101,7 @@ func deleteApart(id string, c appengine.Context) (*Apart, error) {
 	return nil, datastore.Delete(c, key)
 }
 
-func createOrUpdateApart(id string, c appengine.Context) (*Apart, error) {
+func createApart(id string, c appengine.Context) (*Apart, error) {
 
 	apart, e := fetchApartData(id, c)
 	if e != nil {
