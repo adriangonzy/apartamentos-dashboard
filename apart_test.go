@@ -8,27 +8,29 @@ import (
 	"appengine/datastore"
 )
 
-const (
-	testApart = &Apart{
-		Reserved:    "{}",
-		Data:        "{}",
-		UnitId:      "",
-		Name:        "42",
-		Description: "",
-	}
-)
+var testApart *Apart = &Apart{
+	Reserved:    "{}",
+	Data:        "{}",
+	UnitId:      "",
+	Name:        "42",
+	Description: "",
+}
 
-func TestGetApart(t *testing.T) {
+// http://blog.golang.org/appengine-dec2013
+
+func aeContext(t *testing.T) aetest.Context {
 	c, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer c.Close()
+	return c
+}
 
-	/* --- FOUND APART --- */
+func TestGetApartFound(t *testing.T) {
+
 	// add test apart
 	key := datastore.NewKey(c, "Apart", testApart.Name, 0, nil)
-	if _, e = datastore.Put(c, key, testApart); e != nil {
+	if _, e := datastore.Put(c, key, testApart); e != nil {
 		t.Fatal(e)
 	}
 
@@ -37,34 +39,50 @@ func TestGetApart(t *testing.T) {
 	if !reflect.DeepEqual(foundApart, testApart) || err != nil {
 		t.Errorf("getApart() = apart %+v, err %+v want apart %+v, err nil", foundApart, err, testApart)
 	}
+}
 
-	/* --- NOT FOUND APART --- */
+func TestGetApartNotFound(t *testing.T) {
+	c := aeContext(t)
+	defer c.Close()
+
 	notFoundApart, err := getApart("not_found", c)
-	t.Log(err)
 	if notFoundApart != nil {
-		t.Errorf("apart should be %+v is %+v for id %+v", nil, notFoundApart, "not_found")
-	}
-	if err == nil {
-		t.Errorf("err should be %+v is %+v", datastore.ErrNoSuchEntity, err)
+		t.Errorf("getApart() = apart %+v, err %+v want apart nil, err %+v", notFoundApart, err, datastore.ErrNoSuchEntity)
 	}
 }
 
-func TestCreateOrUpdateApart(t *testing.T) {
+func TestCreateApart(t *testing.T) {
+	c := aeContext(t)
+	defer c.Close()
 
+	apart, e := createApart(testApart, c)
+
+	if !reflect.DeepEqual(apart, testApart) || e != nil {
+		t.Errorf("createApart() = apart %+v, err %+v want apart %+v, err nil", apart, e, testApart)
+	}
 }
 
-func TestDeleteApart(t *testing.T) {
+func TestUpdateApart(t *testing.T) {
+	c := aeContext(t)
+	defer c.Close()
 
-}
+	// add test apart
+	key := datastore.NewKey(c, "Apart", testApart.Name, 0, nil)
+	if _, e := datastore.Put(c, key, testApart); e != nil {
+		t.Fatal(e)
+	}
 
-func TestApartsList(t *testing.T) {
+	update := &Apart{
+		Reserved:    "{\"test\":\"test\"}",
+		Data:        "{\"test\":\"test\"}",
+		UnitId:      "test",
+		Name:        testApart.Name,
+		Description: "updated description",
+	}
 
-}
+	apart, e := updateApart(update, c)
 
-func TestUpdateAparts(t *testing.T) {
-
-}
-
-func TestUpdateAllAparts(t *testing.T) {
-
+	if !reflect.DeepEqual(apart, update) || e != nil {
+		t.Errorf("updateApart() = apart %+v, err %+v want apart %+v, err nil", apart, e, update)
+	}
 }

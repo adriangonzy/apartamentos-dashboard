@@ -26,7 +26,7 @@ func init() {
 	r := mux.NewRouter()
 
 	apartRouter := r.PathPrefix("/rest/apart").Subrouter()
-	apartRouter.HandleFunc("/", apartsHandler(apartsList)).Methods("GET")
+	apartRouter.HandleFunc("/", apartsHandler(aparts)).Methods("GET")
 	apartRouter.HandleFunc("/", apartsHandler(updateAllAparts)).Methods("PUT")
 
 	// only for testing
@@ -34,14 +34,14 @@ func init() {
 
 	apartCRUD := apartRouter.PathPrefix("/{id}").Subrouter()
 	apartCRUD.HandleFunc("/", apartHandler(getApart)).Methods("GET")
-	apartCRUD.HandleFunc("/", apartHandler(createOrUpdateApart)).Methods("POST")
-	apartCRUD.HandleFunc("/", apartHandler(createOrUpdateApart)).Methods("PUT")
 	apartCRUD.HandleFunc("/", apartHandler(deleteApart)).Methods("DELETE")
+	apartCRUD.HandleFunc("/", apartHandler(scrap(createApart))).Methods("POST")
+	apartCRUD.HandleFunc("/", apartHandler(scrap(updateApart))).Methods("PUT")
 
 	http.Handle("/", r)
 }
 
-func apartsHandler(listFunc func(c appengine.Context) ([]*Apart, error)) func(w http.ResponseWriter, r *http.Request) {
+func apartsHandler(listFunc func(c appengine.Context) ([]*Apart, error)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := appengine.NewContext(r)
 		aparts, e := listFunc(c)
