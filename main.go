@@ -1,7 +1,9 @@
 package dashboard
 
 import (
+	"fmt"
 	"net/http"
+	//"time"
 
 	"errors"
 	"regexp"
@@ -27,11 +29,10 @@ var apart_ids = []string{
 	"6564225",
 	"6569893",
 	"6611125",
-	"6613087",
 	"6617373",
 	"6640918",
-	"6640931",
-	"6640936"}
+	"6640936",
+}
 
 type Apart struct {
 	Reserved    string `datastore:",noindex" json:"reserved"`
@@ -192,17 +193,86 @@ func fetchApartData(id string, c appengine.Context) (*Apart, error) {
 	}
 
 	c.Debugf("%v", data[1])
+	unitID := getUnitId(data[2], c)
+
+	//scrapApartPrices(id, unitID, c)
 
 	return &Apart{
 		Reserved:    data[0],
-		Data:        data[2],
-		UnitId:      getUnitId(data[2], c),
-		Name:        id,
 		Description: data[1],
+		Data:        data[2],
+		UnitId:      unitID,
+		Name:        id,
 	}, nil
 }
 
-const HOMELIDAYS_APART_URL = "http://www.homelidays.com/hebergement/p"
+const HOMELIDAYS_BASE_URL = "http://www.homelidays.com"
+const HOMELIDAYS_APART_URL = HOMELIDAYS_BASE_URL + "/hebergement/p"
+const HOMELIDAYS_APART_PRICES_FMT_URL = HOMELIDAYS_BASE_URL + "/propertyCurrencyChange.htm?systemId=trips&propertyId=%s&uni_id=%s"
+
+var FRENCH_MONTHS_ABBREV = [12]string{"janv", "fév", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"}
+
+func monthIndex(value string) int {
+	for p, v := range FRENCH_MONTHS_ABBREV {
+		if v == value {
+			return p + 1
+		}
+	}
+	return -1
+}
+
+func scrapApartPrices(id, unitId string, c appengine.Context) error {
+	url := fmt.Sprintf(HOMELIDAYS_APART_PRICES_FMT_URL, id, unitId)
+
+	c.Debugf("%v", url)
+
+	resp, e := urlfetch.Client(c).Get(url)
+	if e != nil {
+		c.Errorf("fetching url %v error %v", url, e)
+		return e
+	}
+
+	// parse url fetch response for building the dom representation
+	doc, e := goquery.NewDocumentFromResponse(resp)
+	if e != nil {
+		c.Errorf("parsing apart Prices %v", e)
+		return e
+	}
+
+	//loc, _ := time.LoadLocation("Europe/Paris")
+
+	doc.Find("#rates .ratePeriodLabel").Each(func(i int, s *goquery.Selection) {
+		title := s.Find(".ratePeriodTitle").Text()
+		dates := s.Find(".ratePeriodDates").First().Text()
+		price := strings.TrimSpace(s.Find(".weekly").Text())
+
+		// matches 2 août 2014
+		subMatches := regexp.MustCompile(`(\d*)\s*(\p{Latin}*)\.?\s*(\d{4})`).FindAllStringSubmatch(dates, -1)
+
+		if len(subMatches) > 0 {
+			parseDates := [6]string{}
+			parseDates[0] = subMatches[0][1]
+			parseDates[1] = subMatches[0][2]
+			parseDates[2] = subMatches[0][3]
+			parseDates[3] = subMatches[1][1]
+			parseDates[4] = subMatches[1][2]
+			parseDates[5] = subMatches[1][3]
+
+			c.Debugf("%s - %s - %s\n", title, parseDates, price)
+
+			/*
+				start, e1 := time.ParseInLocation("02 02 2014", parseDates[0], loc)
+				end, e2 := time.ParseInLocation("02 02 2014", parseDates[1], loc)
+
+				c.Debugf("%v - %v\n", start, end)
+				c.Debugf("%v - %v\n", e1, e2)
+			*/
+		}
+
+	})
+
+	return nil
+}
 
 func scrapApartData(id string, c appengine.Context) ([]string, error) {
 	url := HOMELIDAYS_APART_URL + id
@@ -217,27 +287,30 @@ func scrapApartData(id string, c appengine.Context) ([]string, error) {
 	// parse url fetch response for building the dom representation
 	doc, e := goquery.NewDocumentFromResponse(resp)
 	if e != nil {
-		c.Errorf("parsing Dom %v", e)
+
 		return nil, e
 	}
 
+	// scrap description
+	apartData := make([]string, 3)
+	apartData[1] = strings.TrimSpace(doc.Find(".property-title").First().Text())
+
+	// scrap reservations and data
 	// query first body script and scrap inner text
 	// TODO: check that first is not poisonous
-	data := doc.Find("body > script").First().Text()
+	data := doc.Find(".body-inner > script").Eq(1).Text()
 
-	description := strings.TrimSpace(doc.Find(".property-title").First().Text())
+	//c.Debugf("%v", data)
 
 	// parse first 3 json maps using capture groups
-	subMatches := regexp.MustCompile(`({".*})\s*;`).FindAllStringSubmatch(data, -1)
+	subMatches := regexp.MustCompile(`({"?.*})\s*;`).FindAllStringSubmatch(data, -1)
 
 	if len(subMatches) < 3 {
-		return nil, errors.New("referencia " + id + " es invalida.")
+		c.Errorf("referencia "+id+": sin datos de reserva.", e)
+	} else {
+		apartData[0] = subMatches[0][1]
+		apartData[2] = subMatches[2][1]
 	}
-
-	apartData := make([]string, 3)
-	apartData[0] = subMatches[0][1]
-	apartData[2] = subMatches[2][1]
-	apartData[1] = description
 
 	return apartData, nil
 }
