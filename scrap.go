@@ -14,11 +14,22 @@ import (
 
 const HOMELIDAYS_APART_URL = "http://www.homelidays.com/hebergement/p"
 
-func fetchApartData(id string, c appengine.Context) (*Apart, error) {
+type ApartScrapper interface {
+	Scrap(id string) (*Apart, error)
+}
 
-	data, e := scrapApartData(id, c)
+type SimpleApartScrapper struct {
+	c appengine.Context
+}
+
+func NewApartScrapper(c appengine.Context) ApartScrapper {
+	return &SimpleApartScrapper{c}
+}
+
+func (s *SimpleApartScrapper) Scrap(id string) (*Apart, error) {
+	data, e := scrapApartData(id, s.c)
 	if e != nil {
-		c.Errorf("scrap data %v", e)
+		s.c.Errorf("scrap data %v", e)
 		return nil, e
 	}
 
@@ -26,12 +37,12 @@ func fetchApartData(id string, c appengine.Context) (*Apart, error) {
 		return nil, errors.New("No data was found for " + id)
 	}
 
-	c.Debugf("%v", data[1])
+	s.c.Debugf("%v", data[1])
 
 	return &Apart{
 		Reserved:    data[0],
 		Data:        data[2],
-		UnitId:      getUnitId(data[2], c),
+		UnitId:      getUnitId(data[2], s.c),
 		Name:        id,
 		Description: data[1],
 	}, nil

@@ -16,8 +16,8 @@ type Apart struct {
 	Description string `json:"description"`
 }
 
-func updateAllAparts(c appengine.Context) ([]*Apart, error) {
-	aparts, e := aparts(c)
+func updateAllAparts(c appengine.Context, scrapper ApartScrapper) ([]*Apart, error) {
+	aparts, e := getAparts(c)
 	if e != nil {
 		return nil, e
 	}
@@ -27,7 +27,7 @@ func updateAllAparts(c appengine.Context) ([]*Apart, error) {
 		ids = append(ids, apart.Name)
 	}
 
-	return updateAparts(ids, c)
+	return updateAparts(ids, c, scrapper)
 }
 
 func concatError(oldErr error, newErr error) error {
@@ -43,7 +43,7 @@ func concatError(oldErr error, newErr error) error {
 	}
 }
 
-func updateAparts(ids []string, c appengine.Context) ([]*Apart, error) {
+func updateAparts(ids []string, c appengine.Context, scrapper ApartScrapper) ([]*Apart, error) {
 	aparts := []*Apart{}
 	// concurrently update aparts
 	var e error
@@ -51,10 +51,14 @@ func updateAparts(ids []string, c appengine.Context) ([]*Apart, error) {
 	wg.Add(len(ids))
 	for _, id := range ids {
 		go func(id string) {
-			if updated, err := scrap(updateApart)(id, c); err != nil {
-				e = concatError(e, err)
+			if apart, er := scrapper.Scrap(id); er != nil {
+				e = concatError(e, er)
 			} else {
-				aparts = append(aparts, updated)
+				if updated, err := updateApart(apart, c); err != nil {
+					e = concatError(e, err)
+				} else {
+					aparts = append(aparts, updated)
+				}
 			}
 			wg.Done()
 		}(id)
@@ -63,7 +67,7 @@ func updateAparts(ids []string, c appengine.Context) ([]*Apart, error) {
 	return aparts, e
 }
 
-func aparts(c appengine.Context) ([]*Apart, error) {
+func getAparts(c appengine.Context) ([]*Apart, error) {
 	// fetch apart keys
 	apartKeys := []*datastore.Key{}
 	q := datastore.NewQuery("Apart")
@@ -87,8 +91,8 @@ func aparts(c appengine.Context) ([]*Apart, error) {
 	}
 
 	apartPointers := make([]*Apart, len(apartKeys))
-	for i, apart := range aparts {
-		apartPointers[i] = &apart
+	for i := range aparts {
+		apartPointers[i] = &aparts[i]
 	}
 
 	return apartPointers, nil
@@ -111,6 +115,7 @@ func deleteApart(id string, c appengine.Context) (*Apart, error) {
 }
 
 func updateApart(apart *Apart, c appengine.Context) (*Apart, error) {
+	// TODO: should check that apart exists
 	return createApart(apart, c)
 }
 
@@ -125,14 +130,4 @@ func createApart(apart *Apart, c appengine.Context) (*Apart, error) {
 	}
 
 	return apart, nil
-}
-
-func scrap(editingFunc func(*Apart, appengine.Context) (*Apart, error)) func(string, appengine.Context) (*Apart, error) {
-	return func(id string, c appengine.Context) (*Apart, error) {
-		if apart, e := fetchApartData(id, c); e != nil {
-			return nil, e
-		} else {
-			return editingFunc(apart, c)
-		}
-	}
 }
