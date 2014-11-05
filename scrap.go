@@ -37,14 +37,13 @@ func (s *SimpleApartScrapper) Scrap(id string) (*Apart, error) {
 		return nil, errors.New("No data was found for " + id)
 	}
 
-	s.c.Debugf("%v", data[1])
-
 	return &Apart{
-		Reserved:    data[0],
-		Data:        data[2],
-		UnitId:      getUnitId(data[2], s.c),
+		Description: data[0],
+		Data:        data[1],
+		Reserved:    data[2],
+		MinStays:    data[3],
+		UnitId:      data[4],
 		Name:        id,
-		Description: data[1],
 	}, nil
 }
 
@@ -65,23 +64,22 @@ func scrapApartData(id string, c appengine.Context) ([]string, error) {
 		return nil, e
 	}
 
-	description := strings.TrimSpace(doc.Find(".property-title").First().Text())
+	apartData := make([]string, 5)
 
 	// query second body script and scrap inner text
-	// TODO: check that first is not poisonous
+	// TODO: not very robust
 	data := doc.Find(".body-inner > script").Eq(1).Text()
 
-	// parse first 3 json maps using capture groups
-	subMatches := regexp.MustCompile(`({".*})\s*;`).FindAllStringSubmatch(data, -1)
-
-	if len(subMatches) < 3 {
-		return nil, errors.New("referencia " + id + " es invalida.")
-	}
-
-	apartData := make([]string, 3)
-	apartData[0] = subMatches[0][1]
-	apartData[2] = subMatches[2][1]
-	apartData[1] = description
+	// description
+	apartData[0] = strings.TrimSpace(doc.Find(".property-title").First().Text())
+	// all apart data
+	apartData[1] = regexp.MustCompile(`var unitJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
+	// reservations
+	apartData[2] = regexp.MustCompile(`var calendarAvailabilityJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
+	// min stays
+	apartData[3] = regexp.MustCompile(`var calendarMinStayJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
+	// unit ID
+	apartData[4] = getUnitId(apartData[1], c)
 
 	return apartData, nil
 }

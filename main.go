@@ -33,29 +33,29 @@ func init() {
 	apartRouter.HandleFunc("/fill", fillApartsHandler).Methods("PUT")
 
 	apartCRUD := apartRouter.PathPrefix("/{id}").Subrouter()
-	apartCRUD.HandleFunc("/", crudHandler(getApart)).Methods("GET")
-	apartCRUD.HandleFunc("/", crudHandler(deleteApart)).Methods("DELETE")
-	apartCRUD.HandleFunc("/", crudHandler(scrap(createApart))).Methods("POST")
-	apartCRUD.HandleFunc("/", crudHandler(scrap(updateApart))).Methods("PUT")
+	apartCRUD.HandleFunc("/", crudHandler(GetApart)).Methods("GET")
+	apartCRUD.HandleFunc("/", crudHandler(DeleteApart)).Methods("DELETE")
+	apartCRUD.HandleFunc("/", crudHandler(scrap(CreateApart))).Methods("POST")
+	apartCRUD.HandleFunc("/", crudHandler(scrap(UpdateApart))).Methods("PUT")
 
 	http.Handle("/", r)
 }
 
 func getApartsHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	aparts, e := getAparts(c)
+	aparts, e := GetAparts(c)
 	response(w, aparts, e)
 }
 
 func updateAllApartsHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	aparts, e := updateAllAparts(c, NewApartScrapper(c))
+	aparts, e := UpdateAllAparts(c, NewApartScrapper(c))
 	response(w, aparts, e)
 }
 
 func fillApartsHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	aparts, e := updateAparts(apartIDs, c, NewApartScrapper(c))
+	aparts, e := UpdateAparts(apartIDs, c, NewApartScrapper(c))
 	response(w, aparts, e)
 }
 

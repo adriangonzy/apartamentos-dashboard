@@ -9,15 +9,16 @@ import (
 )
 
 type Apart struct {
+	Description string `datastore:",noindex" json:"description"`
 	Reserved    string `datastore:",noindex" json:"reserved"`
 	Data        string `datastore:",noindex" json:"data"`
+	MinStays    string `datastore:",noindex" json:"minstays"`
 	UnitId      string `json:"unit_id"`
 	Name        string `json:"id"`
-	Description string `json:"description"`
 }
 
-func updateAllAparts(c appengine.Context, scrapper ApartScrapper) ([]*Apart, error) {
-	aparts, e := getAparts(c)
+func UpdateAllAparts(c appengine.Context, scrapper ApartScrapper) ([]*Apart, error) {
+	aparts, e := GetAparts(c)
 	if e != nil {
 		return nil, e
 	}
@@ -27,7 +28,7 @@ func updateAllAparts(c appengine.Context, scrapper ApartScrapper) ([]*Apart, err
 		ids = append(ids, apart.Name)
 	}
 
-	return updateAparts(ids, c, scrapper)
+	return UpdateAparts(ids, c, scrapper)
 }
 
 func concatError(oldErr error, newErr error) error {
@@ -43,7 +44,7 @@ func concatError(oldErr error, newErr error) error {
 	}
 }
 
-func updateAparts(ids []string, c appengine.Context, scrapper ApartScrapper) ([]*Apart, error) {
+func UpdateAparts(ids []string, c appengine.Context, scrapper ApartScrapper) ([]*Apart, error) {
 	aparts := []*Apart{}
 	// concurrently update aparts
 	var e error
@@ -54,7 +55,7 @@ func updateAparts(ids []string, c appengine.Context, scrapper ApartScrapper) ([]
 			if apart, er := scrapper.Scrap(id); er != nil {
 				e = concatError(e, er)
 			} else {
-				if updated, err := updateApart(apart, c); err != nil {
+				if updated, err := UpdateApart(apart, c); err != nil {
 					e = concatError(e, err)
 				} else {
 					aparts = append(aparts, updated)
@@ -67,7 +68,7 @@ func updateAparts(ids []string, c appengine.Context, scrapper ApartScrapper) ([]
 	return aparts, e
 }
 
-func getAparts(c appengine.Context) ([]*Apart, error) {
+func GetAparts(c appengine.Context) ([]*Apart, error) {
 	// fetch apart keys
 	apartKeys := []*datastore.Key{}
 	q := datastore.NewQuery("Apart")
@@ -98,7 +99,7 @@ func getAparts(c appengine.Context) ([]*Apart, error) {
 	return apartPointers, nil
 }
 
-func getApart(id string, c appengine.Context) (*Apart, error) {
+func GetApart(id string, c appengine.Context) (*Apart, error) {
 	key := datastore.NewKey(c, "Apart", id, 0, nil)
 
 	// load apart from datastore
@@ -109,17 +110,17 @@ func getApart(id string, c appengine.Context) (*Apart, error) {
 	return &apart, nil
 }
 
-func deleteApart(id string, c appengine.Context) (*Apart, error) {
+func DeleteApart(id string, c appengine.Context) (*Apart, error) {
 	key := datastore.NewKey(c, "Apart", id, 0, nil)
 	return nil, datastore.Delete(c, key)
 }
 
-func updateApart(apart *Apart, c appengine.Context) (*Apart, error) {
+func UpdateApart(apart *Apart, c appengine.Context) (*Apart, error) {
 	// TODO: should check that apart exists
-	return createApart(apart, c)
+	return CreateApart(apart, c)
 }
 
-func createApart(apart *Apart, c appengine.Context) (*Apart, error) {
+func CreateApart(apart *Apart, c appengine.Context) (*Apart, error) {
 	// create new apart key
 	key := datastore.NewKey(c, "Apart", apart.Name, 0, nil)
 

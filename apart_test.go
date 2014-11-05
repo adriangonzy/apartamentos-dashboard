@@ -24,15 +24,15 @@ func TestCRUDApart(t *testing.T) {
 	defer c.Close()
 
 	// create Apart
-	apart, e := createApart(testApart, c)
+	apart, e := CreateApart(testApart, c)
 	if !reflect.DeepEqual(apart, testApart) || e != nil {
-		t.Errorf("createApart() = apart %+v, err %+v want apart %+v, err nil", apart, e, testApart)
+		t.Errorf("CreateApart() = apart %+v, err %+v want apart %+v, err nil", apart, e, testApart)
 	}
 
 	// get apart found
-	foundApart, e := getApart(testApart.Name, c)
+	foundApart, e := GetApart(testApart.Name, c)
 	if !reflect.DeepEqual(foundApart, testApart) || e != nil {
-		t.Errorf("getApart() = apart %+v, err %+v want apart %+v, err nil", foundApart, e, testApart)
+		t.Errorf("GetApart() = apart %+v, err %+v want apart %+v, err nil", foundApart, e, testApart)
 	}
 
 	// update apart
@@ -44,21 +44,21 @@ func TestCRUDApart(t *testing.T) {
 		Description: "updated description",
 	}
 
-	updatedApart, e := updateApart(update, c)
+	updatedApart, e := UpdateApart(update, c)
 	if !reflect.DeepEqual(updatedApart, update) || e != nil {
-		t.Errorf("updateApart() = apart %+v, err %+v want apart %+v, err nil", updatedApart, e, update)
+		t.Errorf("UpdateApart() = apart %+v, err %+v want apart %+v, err nil", updatedApart, e, update)
 	}
 
 	// delete apart
-	deletedApart, e := deleteApart(testApart.Name, c)
+	deletedApart, e := DeleteApart(testApart.Name, c)
 	if e != nil {
-		t.Errorf("deleteApart() = apart %+v, err %+v want apart nil, err nil", deletedApart, e)
+		t.Errorf("DeleteApart() = apart %+v, err %+v want apart nil, err nil", deletedApart, e)
 	}
 
 	// get apart not found
-	notFoundApart, err := getApart(testApart.Name, c)
+	notFoundApart, err := GetApart(testApart.Name, c)
 	if notFoundApart != nil {
-		t.Errorf("getApart() = apart %+v, err %+v want apart nil, err %+v", notFoundApart, err, datastore.ErrNoSuchEntity)
+		t.Errorf("GetApart() = apart %+v, err %+v want apart nil, err %+v", notFoundApart, err, datastore.ErrNoSuchEntity)
 	}
 }
 
@@ -79,27 +79,27 @@ func TestGetAparts(t *testing.T) {
 	defer c.Close()
 
 	// init 2 aparts
-	apart1, e := createApart(testApart, c)
+	apart1, e := CreateApart(testApart, c)
 	if e != nil {
 		t.Error(e)
 	}
-	apart2, e := createApart(&Apart{Name: "43"}, c)
+	apart2, e := CreateApart(&Apart{Name: "43"}, c)
 	if e != nil {
 		t.Error(e)
 	}
 
-	aparts, e := getAparts(c)
+	aparts, e := GetAparts(c)
 
 	// test size
 	if len(aparts) != 2 || e != nil {
-		t.Errorf("getAparts() = aparts %+v, err %+v want len(aparts)=2, err nil", aparts, e)
+		t.Errorf("GetAparts() = aparts %+v, err %+v want len(aparts)=2, err nil", aparts, e)
 	}
 
 	if !contains(aparts, apart1) {
-		t.Errorf("getAparts() = aparts %+v does not contain apart1 %+v", aparts, apart1)
+		t.Errorf("GetAparts() = aparts %+v does not contain apart1 %+v", aparts, apart1)
 	}
 	if !contains(aparts, apart2) {
-		t.Errorf("getAparts() = aparts %+v does not contain apart2 %+v", aparts, apart2)
+		t.Errorf("GetAparts() = aparts %+v does not contain apart2 %+v", aparts, apart2)
 	}
 }
 
@@ -119,34 +119,34 @@ func TestUpdateAparts(t *testing.T) {
 	defer c.Close()
 
 	// init 2 aparts
-	apart1, e := createApart(testApart, c)
+	apart1, e := CreateApart(testApart, c)
 	if e != nil {
 		t.Error(e)
 	}
-	apart2, e := createApart(&Apart{Name: "43"}, c)
+	apart2, e := CreateApart(&Apart{Name: "43"}, c)
 	if e != nil {
 		t.Error(e)
 	}
 
-	aparts, e := updateAparts([]string{"42", "43"}, c, &TestScrapper{"updated"})
+	aparts, e := UpdateAparts([]string{"42", "43"}, c, &TestScrapper{"updated"})
 
 	// test size
 	if len(aparts) != 2 || e != nil {
-		t.Errorf("updateAparts() = aparts %+v, err %+v want len(aparts)=2, err nil", aparts, e)
+		t.Errorf("UpdateAparts() = aparts %+v, err %+v want len(aparts)=2, err nil", aparts, e)
 	}
 
 	// test contains
 	if !contains(aparts, apart1) {
-		t.Errorf("updateAparts() = aparts %+v does not contain apart1 %+v", aparts, apart1)
+		t.Errorf("UpdateAparts() = aparts %+v does not contain apart1 %+v", aparts, apart1)
 	}
 	if !contains(aparts, apart2) {
-		t.Errorf("updateAparts() = aparts %+v does not contain apart2 %+v", aparts, apart2)
+		t.Errorf("UpdateAparts() = aparts %+v does not contain apart2 %+v", aparts, apart2)
 	}
 
 	// test updated
 	for _, apart := range aparts {
 		if apart.Description != "updated" {
-			t.Errorf("updateAparts() = apart %+v was not updated", apart)
+			t.Errorf("UpdateAparts() = apart %+v was not updated", apart)
 		}
 	}
 }
@@ -159,36 +159,38 @@ func TestUpdateAllAparts(t *testing.T) {
 	defer c.Close()
 
 	// init 2 aparts
-	apart1, e := createApart(testApart, c)
+	apart1, e := CreateApart(testApart, c)
 	if e != nil {
 		t.Error(e)
 	}
-	apart2, e := createApart(&Apart{Name: "43"}, c)
+	apart2, e := CreateApart(&Apart{Name: "43"}, c)
 	if e != nil {
 		t.Error(e)
 	}
 
-	allAparts, e := updateAllAparts(c, &TestScrapper{"all"})
+	allAparts, e := UpdateAllAparts(c, &TestScrapper{"all"})
 
 	// test size
 	if len(allAparts) != 2 || e != nil {
-		t.Errorf("updateAllAparts() = aparts %+v, err %+v want len(aparts)=2, err nil", allAparts, e)
+		t.Errorf("UpdateAllAparts() = aparts %+v, err %+v want len(aparts)=2, err nil", allAparts, e)
 	}
 
 	// test contains
 	if !contains(allAparts, apart1) {
-		t.Errorf("updateAllAparts() = aparts %+v does not contain apart1 %+v", allAparts, apart1)
+		t.Errorf("UpdateAllAparts() = aparts %+v does not contain apart1 %+v", allAparts, apart1)
 	}
 	if !contains(allAparts, apart2) {
-		t.Errorf("updateAllAparts() = aparts %+v does not contain apart2 %+v", allAparts, apart2)
+		t.Errorf("UpdateAllAparts() = aparts %+v does not contain apart2 %+v", allAparts, apart2)
 	}
 
 	// test updated
 	for _, apart := range allAparts {
 		if apart.Description != "all" {
-			t.Errorf("updateAllAparts() = apart %+v was not updated", apart)
+			t.Errorf("UpdateAllAparts() = apart %+v was not updated", apart)
 		}
 	}
 }
 
-func TestConcatError(t *testing.T) {}
+func TestConcatError(t *testing.T) {
+
+}
