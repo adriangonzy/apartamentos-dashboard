@@ -19,7 +19,7 @@ div.datepicker-dates-label {
 div.datepicker-dates div.day {
   position: absolute;
   font-size: 16px;
-  font-weight: lighter;
+  font-weight: 200;
 }
 
 .dayInWeek-1 {

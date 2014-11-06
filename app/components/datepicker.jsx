@@ -64,7 +64,15 @@
           return {number:0, value:''};
       },
       changeNumber: function(e) {
-          this.props.onChangeNumber(e.target.getAttribute('data-number'));
+          var l = e.target.getAttribute('data-number');
+          this.log("data-number   ", l);
+          this.props.onChangeNumber(l);
+      },
+
+      log: function(msg, l) {
+          console.log(msg + " " + l);
+          console.log(this.props.value);
+          return l;
       },
 
       render: function() {
@@ -129,8 +137,22 @@
       changeMonth: function(month) {
           var date = new Date();
           date.setTime(this.state.visibleDate.getTime());
-          date.setMonth(month-1);
+
+          console.log("BEFORE MONTH: " + month);
+          month = month - 1;
+          console.log("AFTER MONTH: " + month);
+          date.setMonth(month);
+          
+          console.log("month " + month);
+          console.log("date " + date);
+
+          console.log("getMonth " + (date.getMonth()));
           this.setState({visibleDate:date});
+      },
+
+      correctMonth: function(date) {
+          console.log("date " + date);
+          return date;
       },
 
       render: function () {
@@ -145,8 +167,8 @@
                         value={visibleDate.getFullYear()} 
                         onChangeNumber={this.changeYear} />
                       <NumberPicker 
-                        number={visibleDate.getMonth()+1}  
-                        value={visibleDate.getMonth() + 1} 
+                        number={this.correctMonth(visibleDate).getMonth() + 1}
+                        value={this.correctMonth(visibleDate).getMonth() + 1}
                         onChangeNumber={this.changeMonth} />
                       <DayPicker 
                         date={visibleDate}

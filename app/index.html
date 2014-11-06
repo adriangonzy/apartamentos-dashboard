@@ -80,8 +80,9 @@
 
           render: function() {
             var apart = this.props.apart,
-                image = apart.data.property.imageUrls[0],
-                apartClassName = "apart" + (this.props.isAvailable ? "" : " unavailable");
+                image = apart.data.property ? apart.data.property.imageUrls[0] : "",
+                apartClassName = "apart" + (this.props.isAvailable ? "" : " unavailable"),
+                weeks = apart.data.availabilityCalendar ? apart.data.availabilityCalendar.reservations : {};
             return (<div className={apartClassName}>
                       <img className="apart-img" src={image} />
                       <div className="apart-info">
@@ -109,7 +110,7 @@
                       <MonthBar
                         period={this.props.period}
                         reservations={apart.reserved}
-                        weeks={apart.data.availabilityCalendar.reservations} />
+                        weeks={weeks} />
                     </div>);
           }
       });
@@ -121,12 +122,17 @@
             $.each(parsedAparts, function(i, apart) {
                 apart = this.parseApart(apart);
             }.bind(this));
-            return parsedAparts;
+            return parsedAparts.filter(function(apart){return apart != null});
           },
 
           parseApart: function(apart) {
-            apart.reserved = $.parseJSON(apart.reserved);
-            apart.data = $.parseJSON(apart.data);
+            console.log(apart)
+            if (apart == null)
+              return apart;
+            if (apart.reserved)
+              apart.reserved = apart.reserved.length > 0 ? $.parseJSON(apart.reserved) : "";
+            if (apart.data)
+              apart.data = apart.data.length > 0 ? $.parseJSON(apart.data) : "";
             return apart;
           },
 
@@ -150,6 +156,17 @@
             $.get("../rest/apart/list")
             .done(function(aparts) {
               this.setState({aparts: this.parseAparts(aparts)});
+            }.bind(this))
+            .fail(function(xhr, status, err) {
+              console.error(this.props.url, status, err.toString());
+            }.bind(this));
+          },
+
+          fillAparts: function() {
+            console.log("Started filling aparts !");
+            $.get("../rest/apart/fill")
+            .done(function(aparts) {
+              this.setState({aparts: this.parseAparts(aparts), loading: false});
             }.bind(this))
             .fail(function(xhr, status, err) {
               console.error(this.props.url, status, err.toString());
@@ -197,7 +214,7 @@
           isAvailable: function(apart) {
             var start = this.props.period.start,
                 end = this.props.period.end,
-                weeks = apart.data.availabilityCalendar.reservations;
+                weeks = apart.data.availabilityCalendar ? apart.data.availabilityCalendar.reservations : {};
 
             var parseDate = function(dateStr) {
               var d = dateStr.split("-");
@@ -209,31 +226,53 @@
               return parsedDate;
             };
 
+            start = start.setHours(0,0,0,0);
+            end = end.setHours(0,0,0,0)
+
             var available = start <= end;
             $.each(weeks, function(k, res) {
               var checkin = parseDate(res.checkinDate),
                   checkout = parseDate(res.checkoutDate);
 
-              if (checkin <= start && start <= checkout) {
+               /*   
+              console.log(checkin)    
+              console.log(checkout)
+              console.log(end)
+              console.log("-**-");
+              */
+
+              if (checkin <= start && start < checkout) {
                 available = false;
+                //console.log("1");
                 return false;
               }
-              if (checkin <= end && end <= checkout) {
+              if (checkin < end && end <= checkout) {
                 available = false;
+                //console.log("2");
                 return false;
               }
               if (start <= checkin && checkin <= end && start <= checkout && checkout <= end) {
                 available = false;
+                //console.log("3");
                 return false; 
               }
 
               return true;
             });
 
-            console.log("apart id: " + apart.id + " " + (available ? "available" : "un-available"));
-            console.log("-------------------------");
+            //console.log("apart id: " + apart.id + " " + (available ? "available" : "un-available"));
+            //console.log("-------------------------");
 
             return available;
+          },
+
+          updateAll: function() {
+            this.fillAparts();
+            this.setState({loading: true});
+          },
+
+          componentWillReceiveProps: function(nextProps) {
+            this.setState({aparts: this.state.aparts});
           },
 
           render: function() {
@@ -259,6 +298,11 @@
             };
 
             return (<div className="aparts">
+                      <button 
+                        onClick={this.updateAll} 
+                        className="btn btn-info">
+                        {this.state.loading ? "actualizando...":"Actualizar Todos"}
+                      </button>
                       {aparts.available.length > 0 ? <h2>Disponibles</h2> : null}
                       {aparts.available}
                       <br></br>
