@@ -86,17 +86,19 @@ func GetAparts(c appengine.Context) ([]*Apart, error) {
 	}
 
 	// batch load aparts from keys
-	aparts := make([]Apart, len(apartKeys))
+	aparts := make([]*Apart, len(apartKeys))
+
+	// init pointers addresses because datastore.GetMulti method
+	// will populate the given address
+	for i := range aparts {
+		aparts[i] = &Apart{}
+	}
+
 	if e := datastore.GetMulti(c, apartKeys, aparts); e != nil {
 		return nil, e
 	}
 
-	apartPointers := make([]*Apart, len(apartKeys))
-	for i := range aparts {
-		apartPointers[i] = &aparts[i]
-	}
-
-	return apartPointers, nil
+	return aparts, nil
 }
 
 func GetApart(id string, c appengine.Context) (*Apart, error) {

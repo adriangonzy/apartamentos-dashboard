@@ -25,18 +25,24 @@ var apartIDs = []string{
 func init() {
 	r := mux.NewRouter()
 
+	// /rest/apart
 	apartRouter := r.PathPrefix("/rest/apart").Subrouter()
 	apartRouter.HandleFunc("/", getApartsHandler).Methods("GET")
 	apartRouter.HandleFunc("/", updateAllApartsHandler).Methods("PUT")
 
-	// only for testing
-	apartRouter.HandleFunc("/fill", fillApartsHandler).Methods("PUT")
-
+	// /rest/apart/id/
 	apartCRUD := apartRouter.PathPrefix("/{id}").Subrouter()
 	apartCRUD.HandleFunc("/", crudHandler(GetApart)).Methods("GET")
 	apartCRUD.HandleFunc("/", crudHandler(DeleteApart)).Methods("DELETE")
 	apartCRUD.HandleFunc("/", crudHandler(scrap(CreateApart))).Methods("POST")
 	apartCRUD.HandleFunc("/", crudHandler(scrap(UpdateApart))).Methods("PUT")
+
+	/** TEST ONLY */
+
+	// /rest/apart/fill
+	apartRouter.HandleFunc("/fill", fillApartsHandler).Methods("PUT")
+
+	/** TEST ONLY */
 
 	http.Handle("/", r)
 }

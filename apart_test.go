@@ -94,7 +94,6 @@ func TestGetAparts(t *testing.T) {
 	if len(aparts) != 2 || e != nil {
 		t.Errorf("GetAparts() = aparts %+v, err %+v want len(aparts)=2, err nil", aparts, e)
 	}
-
 	if !contains(aparts, apart1) {
 		t.Errorf("GetAparts() = aparts %+v does not contain apart1 %+v", aparts, apart1)
 	}
