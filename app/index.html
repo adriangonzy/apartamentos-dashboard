@@ -23,7 +23,7 @@
       
       var NewApartForm = React.createClass({
           postNewApart: function(apart_id) {
-            $.post("/rest/apart?apart_id=" + apart_id)
+            $.ajax({type: "POST", url: "/rest/apart/" + apart_id + "/"})
             .done(function() {
               console.log("SUCCESS");
             })
@@ -153,7 +153,7 @@
 
           loadAparts: function() {
             console.log("Started loading aparts !");
-            $.get("../rest/apart/list")
+            $.get("../rest/apart/")
             .done(function(aparts) {
               this.setState({aparts: this.parseAparts(aparts)});
             }.bind(this))
@@ -164,7 +164,7 @@
 
           fillAparts: function() {
             console.log("Started filling aparts !");
-            $.get("../rest/apart/fill")
+            $.ajax({type: "PUT", url: "../rest/apart/"})
             .done(function(aparts) {
               this.setState({aparts: this.parseAparts(aparts), loading: false});
             }.bind(this))
@@ -174,13 +174,10 @@
           },
 
           onDeleteApart: function(apart_id) {
-            $.ajax({type: "DELETE", url: "/rest/apart?apart_id=" + apart_id})
+            $.ajax({type: "DELETE", url: "/rest/apart/" + apart_id + "/"})
             .done(function() {
-
-              var apart_index = this.getApartIndexFromID(apart_id);
-              delete this.state.aparts[apart_index];
+              this.state.aparts.splice(this.getApartIndexFromID(apart_id), 1);
               this.setState({aparts: this.state.aparts});
-
             }.bind(this))
             .fail(function(xhr, status, err) {
               console.error("error deleting apart " + apart_id, status, err.toString());
@@ -188,7 +185,7 @@
           },
 
           onUpdateApart: function(apart_id) {
-            $.post("/rest/apart?apart_id=" + apart_id)
+            $.ajax({type: "POST", url: "/rest/apart/" + apart_id + "/"})
             .done(function(apart) {
               
               apart = $.parseJSON(apart);

@@ -252,14 +252,36 @@ var MonthBar = React.createClass({
         if (endDate < startDate) 
           return DateUtils.month_names;
 
-        if (startDate.getFullYear() < endDate.getFullYear()) 
-          return $.grep(DateUtils.month_names, function(name, i) {  
-              return startDate.getMonth() <= i;
-          });
+        var years = endDate.getFullYear() - startDate.getFullYear();
+        var months = [];
+        var partialMonths;
 
-        return $.grep(DateUtils.month_names, function(name, i) {
-          return (startDate.getMonth() <= i && i <= endDate.getMonth());
-        });
+        console.log("years " + years);
+        // add whole years
+        while(years >= 1) {
+          months = months.concat(DateUtils.month_names);
+          years--;
+        }
+
+        // if different years all months until endDate months
+        if (startDate.getFullYear() < endDate.getFullYear()) {
+          console.log("different years");
+          partialMonths = $.grep(DateUtils.month_names, function(name, i) {  
+              return i <= endDate.getMonth();
+          });
+        // if same year then filter specific months
+        } else {
+          console.log("same year");
+          partialMonths = $.grep(DateUtils.month_names, function(name, i) {
+            return (startDate.getMonth() <= i && i <= endDate.getMonth());
+          }); 
+        }
+
+        console.table(partialMonths);
+        months = months.concat(partialMonths);
+
+        console.table(months);
+        return months
     },
 
     inSearchPeriod: function(date) {
