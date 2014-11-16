@@ -438,7 +438,6 @@ var MonthBar = React.createClass({
       }
   });
 
-
   var Day = React.createClass({
       /**
        * @param e
