@@ -1,4 +1,6 @@
 *.sublime-project
 *.sublime-workspace
 *.DS_STORE
+
 front/node_modules
+front/dist
