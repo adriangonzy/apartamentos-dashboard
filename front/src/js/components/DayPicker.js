@@ -18,7 +18,7 @@ var DayPicker = React.createClass({
 		var date = this.props.date.clone(),
         firstDay = date.startOf('month').day(),
         curMonthDays = date.daysInMonth(),
-        preMonthDays = date.substrat(1, 'months').daysInMonth(),
+        preMonthDays = date.subtract(1, 'months').daysInMonth(),
         offset = firstDay === 0 ? 7 : firstDay;
       
     var previousMonthDays = _.range(preMonthDays - offset, preMonthDays + 1).map(function(day){
@@ -28,7 +28,7 @@ var DayPicker = React.createClass({
                   select={this.props.selectDate} />
     }.bind(this));
 
-    date = this.props.moment.clone();
+    date = this.props.date.clone();
     var currentMonthDays = _.range(1, curMonthDays).map(function(day) {
         var thisDate = moment(date).date(day);
         return <Day 
@@ -40,9 +40,9 @@ var DayPicker = React.createClass({
                   used={this.props.used(thisDate)}
                   start={this.props.isStart(thisDate)}
                   end={this.props.isEnd(thisDate)} />
-    }).bind(this));
+    }.bind(this));
 
-    date = this.props.moment.clone().add(1, 'months');
+    date = this.props.date.clone().add(1, 'months');
     var usedDays = previousMonthDays.length + currentMonthDays.length;
     var nextMonthDays = _.range(1, 42 - usedDays).map(function(day) {
           return <Day 
@@ -79,22 +79,23 @@ var Day = React.createClass({
       return {selected:false};
   },
   getClassName: function() {
-  	var className="day week-" + this.props.week + " dayInWeek-" + this.props.date.day();
-    // clicked day
-    className += (this.props.selected ? ' selected':'');
-    // in search period
-    className += (this.props.searched ? ' searched':'');
-    // reserved
-    className += (this.props.used && !this.props.start?' used':'');
-    // upper or lower triangle
-    className += (this.props.start ?' pm-reserved':'');
-    className += (this.props.end ?' am-reserved':'');
-	
+      var className="day week-" + this.props.week + " dayInWeek-" + this.props.date.day();
+      // clicked day
+      className += (this.props.selected ? ' selected':'');
+      // in search period
+      className += (this.props.searched ? ' searched':'');
+      // reserved
+      className += (this.props.used && !this.props.start?' used':'');
+      // upper or lower triangle
+      className += (this.props.start ?' pm-reserved':'');
+      className += (this.props.end ?' am-reserved':'');
+      return className;
   },
   render: function() {
+    console.log(this.props.date.format('YYYY-MM-DD'), this.props.used);
     return (
-        <div className={getClassName()}>
-            <a href="#" onClick={this.handleClick}>{this.props.date}</a>
+        <div className={this.getClassName()}>
+            <a href="#" onClick={this.handleClick}>{this.props.date.date()}</a>
         </div>
         );
   }

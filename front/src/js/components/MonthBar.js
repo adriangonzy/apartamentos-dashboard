@@ -1,5 +1,6 @@
 var React = require('react');
 var moment = require('moment');
+var _ = require('lodash');
 var DayPicker = require('./daypicker.js');
 
 var MonthBar = React.createClass({
@@ -11,7 +12,7 @@ var MonthBar = React.createClass({
             reservations:{},
             selectedDate: moment(),
             period: {
-                start: moment(), 
+                start: moment(),
                 end: moment().add(1, 'years')
             },
             onChangeDate: function(date) {
@@ -33,7 +34,7 @@ var MonthBar = React.createClass({
       return function(date) {
         var dateKey = date.format('YYYY-MM-DD');
         var check = false;
-        $.each(this.props.weeks, function(k, reservation) {
+        _.each(this.props.weeks, function(k, reservation) {
           if (reservation[property] === dateKey) {
             check = true;
             return false;
@@ -60,32 +61,31 @@ var MonthBar = React.createClass({
           return wholeYear;
 
         var startYear = start.year(),
-            endYear = end.year()
+            endYear = end.year(),
             years = [],
             partialMonths = [];
 
-        while(startYear < endYear) {
-          years[startYear] = wholeYear;
-          startYear++;
-        }
-
-        // if different years all months until endDate months
-        if (start.year() < end.year()) {
+        if (startYear < endYear) {
           console.log("different years");
-          partialMonths = _.grep(wholeYear, function(name, i) {  
-              return i <= end.month();
+          years[startYear] = _.filter(wholeYear, function(v, i) {
+            return (start.month() <= i);
           });
-        // if same year then filter specific months
+          years[endYear] = _.filter(wholeYear, function(v, i) {
+            return (i <= end.month());
+          });
+          startYear++;
+          // pad
+          while(startYear < endYear) {
+            years[startYear]=wholeYear;
+            startYear++;
+          }
         } else {
           console.log("same year");
-          partialMonths = _.grep(wholeYear, function(name, i) {
+          years[startYear] = _.filter(wholeYear, function(v, i) {
             return (start.month() <= i && i <= end.month());
           }); 
         }
-
-        years[startYear] = partialMonths;
         console.table(years);
-
         return years;
     },
 
@@ -93,21 +93,40 @@ var MonthBar = React.createClass({
         var visibleDate = this.state.visibleDate;
         var years = this.filterVisibleYears(this.props.period.start, this.props.period.end);
 
-        years = years.map(function(year, i) {
-          // finish this
+        console.log("start", this.props.period.start.format('YYYY-MM-DD'));
+        console.log("end", this.props.period.end.format('YYYY-MM-DD'));
+
+        var y1 = moment().year(2014).month(10).date(10);
+        console.log("y1", y1.format('YYYY-MM-DD'), "used", this.used(y1));
+        var y2 = moment().year(2015).month(10).date(10);
+        console.log("y2", y2.format('YYYY-MM-DD'), "used", this.used(y2));
+        
+
+        years = years.map(function(year, yearName) {
+          var months = year.map(function(month) {
               return  <DayPicker
                         label={month}
-                        date={new Date(visibleDate.getFullYear(), DateUtils.month_names.indexOf(month), 1)}
+                        date={moment(visibleDate).year(yearName).month(month)}
                         searched={this.inSearchPeriod}
-                        used={this.isUsed}
+                        used={this.used}
                         isStart={this.check('checkinDate')}
-                        isEnd={this.check('checkoutDate')} />;
+                        isEnd={this.check('checkoutDate')} />
+          }.bind(this));
+
+          return (<div className="year">
+                    <span>{yearName}</span>
+                    <div className="monthpicker">
+                      <div className="monthpicker-container">
+                        {months}
+                      </div>
+                    </div>
+                  </div>);
         }.bind(this));
 
-        return (<div className="monthpicker">
-                  <div className="monthpicker-container">
-                      {months}
-                  </div>
+        return (<div className="years">
+                  {years}
                 </div>);
     }
   });
+
+module.exports = MonthBar;

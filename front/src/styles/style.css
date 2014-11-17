@@ -1,0 +1,82 @@
+.date-filter {
+	display: inline-block;
+}
+
+.date-picker-label {
+	margin: 0 10px 10px 10px;
+	font-size: 15px;
+}
+
+.date-filter input {
+	text-align: center;
+}
+
+.date-filters .form-group {
+	margin-right: 20px;
+}
+
+.date-filters {
+	text-align: center;
+	margin: 40px 0;
+}
+
+.apart {
+	margin-top: 20px;
+	background-color: #fff;
+  	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.175);
+  	background-clip: padding-box;
+}
+
+.apart .monthpicker {
+	display: inline-block;
+	vertical-align: middle;
+	width: 40%;
+	min-width: 340px;
+	border-left: 1px solid rgba(0, 0, 0, 0.175);
+}
+
+.apart .apart-img {
+  height: 160px;
+  width: 210px;
+  margin-left: 15px;
+}
+
+.apart.unavailable {
+}
+
+.apart-info {
+  display: inline-block;
+  margin-left: 15px;
+  vertical-align: middle;
+  width: 38%;
+}
+
+.apart-info .btn {
+	margin-right: 10px;
+}
+
+.day.am-reserved a::before {
+	position: absolute;
+	display: block;
+	content: "";
+	opacity: 0.8;
+	border-bottom: 0px solid transparent;
+	bottom: 0;
+	border-bottom-width: 22px;
+	border-left: 20px solid green;
+}
+
+.day.pm-reserved a::after {
+	position: absolute;
+	display: block;
+	content: "";
+	opacity: 0.8;
+	border-top: 0px solid transparent;
+	bottom: 0;
+	border-top-width: 22px;
+	border-right: 20px solid green;
+}
+
+.searched {
+	background-color: rgba(252, 242, 135, 0.85);
+}
