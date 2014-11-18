@@ -12,7 +12,10 @@ var DatePicker = React.createClass({
             show: true,
             selectedDate: moment(),
             onChangeDate: function(date) {
-              console.log(date);
+              console.log("change", date);
+            },
+            select: function(date) {
+              console.log("select", date);
             }
           });
       },

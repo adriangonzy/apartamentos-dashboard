@@ -11,7 +11,7 @@ var DayPicker = React.createClass({
       searched: function() {return false;},
 			isStart: function() {return false;},
 			isEnd: function() {return false;},
-			select: function(date) { console.log(date);}
+			select: function(date) {console.log("select", date);}
 		});
 	},
 	render: function () {
@@ -26,7 +26,7 @@ var DayPicker = React.createClass({
                   key={moment(date).date(day).dayOfYear()}
                   date={moment(date).date(day)} 
                   week={1}
-                  select={this.props.selectDate} />
+                  select={this.props.select} />
     }.bind(this));
 
     date = this.props.date.clone();
@@ -51,7 +51,7 @@ var DayPicker = React.createClass({
                     key={moment(date).date(day).dayOfYear()}
                     date={moment(date).date(day)} 
                     week={Math.ceil((usedDays + day) / 7)} 
-                    select={this.props.selectDate} />
+                    select={this.props.select} />
     }.bind(this));
 
     return (

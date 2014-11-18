@@ -27923,6 +27923,7 @@ var React = require('react');
 var reservations = require('./reservations.js')
 var MonthBar = require('./monthbar.js');
 var DatePicker = require('./datepicker.js');
+var DatePickerInput = require('./datepickerinput.js');
 
 var APP = 
 	React.createClass({displayName: 'APP',
@@ -27932,13 +27933,14 @@ var APP =
 					React.createElement("h1", null, "Mi app de ratillas"), 
 					React.createElement(MonthBar, {
 						reservations: reservations}), 
-					React.createElement(DatePicker, null)
+					React.createElement(DatePicker, null), 
+					React.createElement(DatePickerInput, null)
 				)
 			);
 		}
 	});
 module.exports = APP;
-},{"./datepicker.js":151,"./monthbar.js":153,"./reservations.js":155,"react":149}],151:[function(require,module,exports){
+},{"./datepicker.js":151,"./datepickerinput.js":152,"./monthbar.js":154,"./reservations.js":156,"react":149}],151:[function(require,module,exports){
 var React = require('react');
 var moment = require('moment');
 var DayPicker = require('./daypicker.js');
@@ -27953,7 +27955,10 @@ var DatePicker = React.createClass({displayName: 'DatePicker',
             show: true,
             selectedDate: moment(),
             onChangeDate: function(date) {
-              console.log(date);
+              console.log("change", date);
+            },
+            select: function(date) {
+              console.log("select", date);
             }
           });
       },
@@ -27992,7 +27997,53 @@ var DatePicker = React.createClass({displayName: 'DatePicker',
   });
 
 module.exports = DatePicker;
-},{"./daypicker.js":152,"./numberpicker.js":154,"moment":3,"react":149}],152:[function(require,module,exports){
+},{"./daypicker.js":153,"./numberpicker.js":155,"moment":3,"react":149}],152:[function(require,module,exports){
+var React = require('react');
+var moment = require('moment');
+var DatePicker = require('./datepicker.js');
+
+var DatePickerInput = React.createClass({displayName: 'DatePickerInput',
+    getDefaultProps: function() {
+        return {
+            date: moment(),
+            onChangeDate: function(date){console.log(date)}
+        };
+    },
+    getInitialState: function() {
+        return {show: false};
+    },
+    showDatePicker: function() {
+        this.setState({show: true});
+    },
+    hideDatePicker: function() {
+        this.setState({show: false});
+    },
+    onChangeDate: function(date) {
+        this.setState({show: false});
+        this.props.onChangeDate(date);
+    },
+
+    render: function() {
+        var style = {position:'fixed', top:0, left:0, width:'100%', height:'100%', display:(this.state.show?'block':'none')};
+
+        return (
+            React.createElement("div", null, 
+                React.createElement("input", {className: "form-control", type: "text", onFocus: this.showDatePicker, value: this.props.date.format('YYYY MM DD')}), 
+                React.createElement("div", {style: style, onClick: this.hideDatePicker}), 
+                React.createElement("div", {className: "datepicker-wrapper"}, 
+                    React.createElement(DatePicker, {
+                      selectedDate: this.props.date, 
+                      show: this.state.show, 
+                      onChangeDate: this.onChangeDate})
+                )
+            )
+        );
+    }
+});
+
+module.exports = DatePickerInput;
+
+},{"./datepicker.js":151,"moment":3,"react":149}],153:[function(require,module,exports){
 var React = require('react');
 var moment = require('moment');
 var _ = require('lodash');
@@ -28006,7 +28057,7 @@ var DayPicker = React.createClass({displayName: 'DayPicker',
       searched: function() {return false;},
 			isStart: function() {return false;},
 			isEnd: function() {return false;},
-			select: function(date) { console.log(date);}
+			select: function(date) {console.log("select", date);}
 		});
 	},
 	render: function () {
@@ -28021,7 +28072,7 @@ var DayPicker = React.createClass({displayName: 'DayPicker',
                   key: moment(date).date(day).dayOfYear(), 
                   date: moment(date).date(day), 
                   week: 1, 
-                  select: this.props.selectDate})
+                  select: this.props.select})
     }.bind(this));
 
     date = this.props.date.clone();
@@ -28046,7 +28097,7 @@ var DayPicker = React.createClass({displayName: 'DayPicker',
                     key: moment(date).date(day).dayOfYear(), 
                     date: moment(date).date(day), 
                     week: Math.ceil((usedDays + day) / 7), 
-                    select: this.props.selectDate})
+                    select: this.props.select})
     }.bind(this));
 
     return (
@@ -28099,7 +28150,7 @@ var Day = React.createClass({displayName: 'Day',
 });
 
 module.exports = DayPicker;
-},{"lodash":2,"moment":3,"react":149}],153:[function(require,module,exports){
+},{"lodash":2,"moment":3,"react":149}],154:[function(require,module,exports){
 var React = require('react');
 var moment = require('moment');
 var _ = require('lodash');
@@ -28220,7 +28271,7 @@ var MonthBar = React.createClass({displayName: 'MonthBar',
   });
 
 module.exports = MonthBar;
-},{"./daypicker.js":152,"lodash":2,"moment":3,"react":149}],154:[function(require,module,exports){
+},{"./daypicker.js":153,"lodash":2,"moment":3,"react":149}],155:[function(require,module,exports){
 var React = require('react');
 
 var NumberPicker = React.createClass({displayName: 'NumberPicker',
@@ -28251,7 +28302,7 @@ var NumberPicker = React.createClass({displayName: 'NumberPicker',
 });
 
 module.exports = NumberPicker;
-},{"react":149}],155:[function(require,module,exports){
+},{"react":149}],156:[function(require,module,exports){
 module.exports = {
     "2014-11-30": {
         "status": "u"
@@ -28296,7 +28347,7 @@ module.exports = {
         "status": "u"
     }
 }
-},{}],156:[function(require,module,exports){
+},{}],157:[function(require,module,exports){
 /** @jsx React.DOM */
 var APP = require('./components/app')
 var React = require('react')
@@ -28304,4 +28355,4 @@ var React = require('react')
 React.render(
 	React.createElement(APP, null), 
 	document.getElementById('main'));
-},{"./components/app":150,"react":149}]},{},[156])
+},{"./components/app":150,"react":149}]},{},[157])

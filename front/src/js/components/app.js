@@ -3,6 +3,7 @@ var React = require('react');
 var reservations = require('./reservations.js')
 var MonthBar = require('./monthbar.js');
 var DatePicker = require('./datepicker.js');
+var DatePickerInput = require('./datepickerinput.js');
 
 var APP = 
 	React.createClass({
@@ -13,6 +14,7 @@ var APP =
 					<MonthBar 
 						reservations={reservations} />
 					<DatePicker />
+					<DatePickerInput />
 				</div>
 			);
 		}
