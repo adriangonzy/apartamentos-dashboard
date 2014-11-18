@@ -11,7 +11,7 @@ var DayPicker = React.createClass({
       searched: function() {return false;},
 			isStart: function() {return false;},
 			isEnd: function() {return false;},
-			select: function(date) {console.log("select", date);}
+			selectDate: function(date) {console.log("select", date);}
 		});
 	},
 	render: function () {
@@ -26,7 +26,7 @@ var DayPicker = React.createClass({
                   key={moment(date).date(day).dayOfYear()}
                   date={moment(date).date(day)} 
                   week={1}
-                  select={this.props.select} />
+                  selectDate={this.props.selectDate} />
     }.bind(this));
 
     date = this.props.date.clone();
@@ -36,7 +36,7 @@ var DayPicker = React.createClass({
                   key={thisDate.dayOfYear()}
                   date={thisDate}
                   week={Math.ceil((day+offset) / 7)} 
-                  select={this.props.select}
+                  selectDate={this.props.selectDate}
                   selected={this.props.selected(thisDate)}
                   searched={this.props.searched(thisDate)}
                   used={this.props.used(thisDate)}
@@ -51,7 +51,7 @@ var DayPicker = React.createClass({
                     key={moment(date).date(day).dayOfYear()}
                     date={moment(date).date(day)} 
                     week={Math.ceil((usedDays + day) / 7)} 
-                    select={this.props.select} />
+                    selectDate={this.props.selectDate} />
     }.bind(this));
 
     return (
@@ -76,10 +76,15 @@ var DayPicker = React.createClass({
 var Day = React.createClass({
   handleClick: function(e) {	
       e.preventDefault();
-      this.props.select(this.props.date);
+      this.props.selectDate(this.props.date);
   },
   getDefaultProps: function() {
-      return {selected:false};
+      return {
+        selected: false,
+        selectDate: function(date) {
+          console.log("daypicker", date);
+        }
+      };
   },
   getClassName: function() {
       var className = "day week-" + this.props.week + " dayInWeek-" + this.props.date.day();

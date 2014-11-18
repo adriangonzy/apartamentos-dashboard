@@ -4,49 +4,39 @@ var DayPicker = require('./daypicker.js');
 var NumberPicker = require('./numberpicker.js');
 
 var DatePicker = React.createClass({
-      getInitialState: function() {
-          return({visibleDate:this.props.selectedDate});
-      },
       getDefaultProps: function() {
           return ({
             show: true,
             selectedDate: moment(),
-            onChangeDate: function(date) {
-              console.log("change", date);
+            changeYear: function(year) {
+              this.selectDate(moment().year(year));
             },
-            select: function(date) {
+            changeMonth: function(month) {
+              this.selectDate(moment().month(month - 1));
+            },
+            selectDate: function(date) {
               console.log("select", date);
             }
           });
       },
-      onChangeSelectedDate: function(date) {
-          this.setState({visibleDate:date});
-          this.props.onChangeDate(date);
-      },
-      changeYear: function(year) {
-          this.setState({visibleDate: this.state.visibleDate.year(year)});
-      },
-      changeMonth: function(month) {
-        this.setState({visibleDate: this.state.visibleDate.month(month - 1)});
-      },
-
+      
       render: function () {
-          var style = {display:(this.props.show ? 'block':'none')};
-          var visibleDate = this.state.visibleDate;
+          var style = {display:(this.props.show ? 'block' : 'none')};
+          var date = this.props.selectedDate;
           return (
               <div className="datepicker" style={style}>
                   <div className="datepicker-container">
                       <NumberPicker 
-                        number={visibleDate.year()} 
-                        value={visibleDate.year()} 
-                        onChangeNumber={this.changeYear} />
+                        number={date.year()} 
+                        value={date.year()} 
+                        onChangeNumber={this.props.changeYear} />
                       <NumberPicker 
-                        number={visibleDate.month() + 1}
-                        value={visibleDate.month() + 1}
-                        onChangeNumber={this.changeMonth} />
+                        number={date.month() + 1}
+                        value={date.month() + 1}
+                        onChangeNumber={this.props.changeMonth} />
                       <DayPicker 
-                        date={visibleDate}
-                        select={this.onChangeSelectedDate} />
+                        date={this.props.selectedDate}
+                        selectDate={this.props.selectDate} />
                   </div>
               </div>
           );
