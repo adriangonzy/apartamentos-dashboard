@@ -63,20 +63,28 @@ div.datepicker-dates div.day {
   top: 120px;
 }
 
-.half-day-right {
+.year {
+  display: inline-block;
+  position: relative;
+  width: 10px;
+}
 
+.year-label {
+  display: inline-block;
+  position: absolute;
+  top: 65px;
+  left: -10px;
+}
+
+.rotate {
+  -moz-transform: rotate(-90deg);
+  -webkit-transform: rotate(-90deg);
+  transform: rotate(-90deg);
 }
 
 .monthpicker {
   overflow-x: scroll; 
   overflow-y:hidden;
-
-  /*
-  position: relative;
-  background-color: #fff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.175);
-  background-clip: padding-box;
-  */
 }
 
 .monthpicker-container {

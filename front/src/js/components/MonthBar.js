@@ -93,31 +93,27 @@ var MonthBar = React.createClass({
         var visibleDate = this.state.visibleDate;
         var years = this.filterVisibleYears(this.props.period.start, this.props.period.end);
         
-        years = years.map(function(year, yearName) {
-          var months = year.map(function(month) {
-              return  <DayPicker
-                        key={month}
-                        label={month}
-                        date={moment(visibleDate).year(yearName).month(month)}
-                        searched={this.inSearchPeriod}
-                        used={this.used}
-                        isStart={this.check('checkinDate')}
-                        isEnd={this.check('checkoutDate')} />
-          }.bind(this));
-
-          return (<div className="year" key={yearName}>
-                    <span>{yearName}</span>
-                    <div className="monthpicker">
-                      <div className="monthpicker-container">
-                        {months}
-                      </div>
-                    </div>
-                  </div>);
+        var months = [];
+        years.map(function(yearMonths, yearName) {
+            months = months.concat(<div className="year" key={yearName}><span className="year-label rotate">{yearName}</span></div>);
+            months = months.concat(yearMonths.map(function(month) {
+            return  <DayPicker
+                      key={month}
+                      label={month}
+                      date={moment(visibleDate).year(yearName).month(month)}
+                      searched={this.inSearchPeriod}
+                      used={this.used}
+                      isStart={this.check('checkinDate')}
+                      isEnd={this.check('checkoutDate')} />
+            }.bind(this)));
         }.bind(this));
 
-        return (<div className="years">
-                  {years}
-                </div>);
+        return(
+              <div className="monthpicker">
+                <div className="monthpicker-container">
+                  {months}
+                </div>
+              </div>);
     }
   });
 
