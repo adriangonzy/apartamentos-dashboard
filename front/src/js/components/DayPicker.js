@@ -19,19 +19,21 @@ var DayPicker = React.createClass({
         firstDay = date.startOf('month').day(),
         curMonthDays = date.daysInMonth(),
         preMonthDays = date.subtract(1, 'months').daysInMonth(),
-        offset = firstDay === 0 ? 7 : firstDay;
-      
-    var previousMonthDays = _.range(preMonthDays - offset, preMonthDays + 1).map(function(day){
-        return <Day 
+        offset = (firstDay === 0 ? 7 : firstDay) - 1;
+
+    var previousMonthDays = _.range(preMonthDays - offset + 1, preMonthDays + 1).map(function(day){
+        return <Day
+                  key={moment(date).date(day).dayOfYear()}
                   date={moment(date).date(day)} 
-                  week={1} 
+                  week={1}
                   select={this.props.selectDate} />
     }.bind(this));
 
     date = this.props.date.clone();
-    var currentMonthDays = _.range(1, curMonthDays).map(function(day) {
+    var currentMonthDays = _.range(1, curMonthDays + 1).map(function(day) {
         var thisDate = moment(date).date(day);
-        return <Day 
+        return <Day
+                  key={thisDate.dayOfYear()}
                   date={thisDate}
                   week={Math.ceil((day+offset) / 7)} 
                   select={this.props.select}
@@ -44,8 +46,9 @@ var DayPicker = React.createClass({
 
     date = this.props.date.clone().add(1, 'months');
     var usedDays = previousMonthDays.length + currentMonthDays.length;
-    var nextMonthDays = _.range(1, 42 - usedDays).map(function(day) {
-          return <Day 
+    var nextMonthDays = _.range(1, 42 - usedDays + 1).map(function(day) {
+          return <Day
+                    key={moment(date).date(day).dayOfYear()}
                     date={moment(date).date(day)} 
                     week={Math.ceil((usedDays + day) / 7)} 
                     select={this.props.selectDate} />
@@ -56,13 +59,13 @@ var DayPicker = React.createClass({
             <div className="datepicker-dates-label">{this.props.label}</div>
             <div className="datepicker-dates">
               <div className="out">
-              {previousMonthDays}
+                {previousMonthDays}
               </div>
               <div>
-              {currentMonthDays}
+                {currentMonthDays}
               </div>
               <div className="out">
-              {nextMonthDays}
+                {nextMonthDays}
               </div>
             </div>
         </div>
@@ -79,7 +82,7 @@ var Day = React.createClass({
       return {selected:false};
   },
   getClassName: function() {
-      var className="day week-" + this.props.week + " dayInWeek-" + this.props.date.day();
+      var className = "day week-" + this.props.week + " dayInWeek-" + this.props.date.day();
       // clicked day
       className += (this.props.selected ? ' selected':'');
       // in search period
@@ -92,7 +95,6 @@ var Day = React.createClass({
       return className;
   },
   render: function() {
-    console.log(this.props.date.format('YYYY-MM-DD'), this.props.used);
     return (
         <div className={this.getClassName()}>
             <a href="#" onClick={this.handleClick}>{this.props.date.date()}</a>

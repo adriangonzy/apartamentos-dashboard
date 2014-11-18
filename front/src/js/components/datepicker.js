@@ -24,7 +24,7 @@ var DatePicker = React.createClass({
           this.setState({visibleDate: this.state.visibleDate.year(year)});
       },
       changeMonth: function(month) {
-          this.setState({visibleDate: this.state.visibleDate.month(month)});
+        this.setState({visibleDate: this.state.visibleDate.month(month - 1)});
       },
 
       render: function () {
@@ -38,15 +38,15 @@ var DatePicker = React.createClass({
                         value={visibleDate.year()} 
                         onChangeNumber={this.changeYear} />
                       <NumberPicker 
-                        number={visibleDate.month()}
-                        value={visibleDate.month()}
+                        number={visibleDate.month() + 1}
+                        value={visibleDate.month() + 1}
                         onChangeNumber={this.changeMonth} />
                       <DayPicker 
                         date={visibleDate}
                         select={this.onChangeSelectedDate} />
                   </div>
               </div>
-              );
+          );
       }
   });
 

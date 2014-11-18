@@ -92,19 +92,11 @@ var MonthBar = React.createClass({
     render: function() {
         var visibleDate = this.state.visibleDate;
         var years = this.filterVisibleYears(this.props.period.start, this.props.period.end);
-
-        console.log("start", this.props.period.start.format('YYYY-MM-DD'));
-        console.log("end", this.props.period.end.format('YYYY-MM-DD'));
-
-        var y1 = moment().year(2014).month(10).date(10);
-        console.log("y1", y1.format('YYYY-MM-DD'), "used", this.used(y1));
-        var y2 = moment().year(2015).month(10).date(10);
-        console.log("y2", y2.format('YYYY-MM-DD'), "used", this.used(y2));
         
-
         years = years.map(function(year, yearName) {
           var months = year.map(function(month) {
               return  <DayPicker
+                        key={month}
                         label={month}
                         date={moment(visibleDate).year(yearName).month(month)}
                         searched={this.inSearchPeriod}
@@ -113,7 +105,7 @@ var MonthBar = React.createClass({
                         isEnd={this.check('checkoutDate')} />
           }.bind(this));
 
-          return (<div className="year">
+          return (<div className="year" key={yearName}>
                     <span>{yearName}</span>
                     <div className="monthpicker">
                       <div className="monthpicker-container">

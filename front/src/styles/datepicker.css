@@ -22,25 +22,25 @@ div.datepicker-dates div.day {
   font-weight: 200;
 }
 
-.dayInWeek-0 {
+.dayInWeek-1 {
   left: 0
 }
-.dayInWeek-1 {
+.dayInWeek-2 {
   left: 22px
 }
-.dayInWeek-2 {
+.dayInWeek-3 {
   left: 44px
 }
-.dayInWeek-3 {
+.dayInWeek-4 {
   left: 66px
 }
-.dayInWeek-4 {
+.dayInWeek-5 {
   left: 88px
 }
-.dayInWeek-5 {
+.dayInWeek-6 {
   left: 110px
 }
-.dayInWeek-6 {
+.dayInWeek-0 {
   left: 132px
 }
 

@@ -21176,7 +21176,7 @@ var DatePicker = React.createClass({displayName: 'DatePicker',
           this.setState({visibleDate: this.state.visibleDate.year(year)});
       },
       changeMonth: function(month) {
-          this.setState({visibleDate: this.state.visibleDate.month(month)});
+        this.setState({visibleDate: this.state.visibleDate.month(month - 1)});
       },
 
       render: function () {
@@ -21190,15 +21190,15 @@ var DatePicker = React.createClass({displayName: 'DatePicker',
                         value: visibleDate.year(), 
                         onChangeNumber: this.changeYear}), 
                       React.createElement(NumberPicker, {
-                        number: visibleDate.month(), 
-                        value: visibleDate.month(), 
+                        number: visibleDate.month() + 1, 
+                        value: visibleDate.month() + 1, 
                         onChangeNumber: this.changeMonth}), 
                       React.createElement(DayPicker, {
                         date: visibleDate, 
                         select: this.onChangeSelectedDate})
                   )
               )
-              );
+          );
       }
   });
 
@@ -21225,19 +21225,21 @@ var DayPicker = React.createClass({displayName: 'DayPicker',
         firstDay = date.startOf('month').day(),
         curMonthDays = date.daysInMonth(),
         preMonthDays = date.subtract(1, 'months').daysInMonth(),
-        offset = firstDay === 0 ? 7 : firstDay;
-      
-    var previousMonthDays = _.range(preMonthDays - offset, preMonthDays + 1).map(function(day){
+        offset = (firstDay === 0 ? 7 : firstDay) - 1;
+
+    var previousMonthDays = _.range(preMonthDays - offset + 1, preMonthDays + 1).map(function(day){
         return React.createElement(Day, {
+                  key: moment(date).date(day).dayOfYear(), 
                   date: moment(date).date(day), 
                   week: 1, 
                   select: this.props.selectDate})
     }.bind(this));
 
     date = this.props.date.clone();
-    var currentMonthDays = _.range(1, curMonthDays).map(function(day) {
+    var currentMonthDays = _.range(1, curMonthDays + 1).map(function(day) {
         var thisDate = moment(date).date(day);
         return React.createElement(Day, {
+                  key: thisDate.dayOfYear(), 
                   date: thisDate, 
                   week: Math.ceil((day+offset) / 7), 
                   select: this.props.select, 
@@ -21250,8 +21252,9 @@ var DayPicker = React.createClass({displayName: 'DayPicker',
 
     date = this.props.date.clone().add(1, 'months');
     var usedDays = previousMonthDays.length + currentMonthDays.length;
-    var nextMonthDays = _.range(1, 42 - usedDays).map(function(day) {
+    var nextMonthDays = _.range(1, 42 - usedDays + 1).map(function(day) {
           return React.createElement(Day, {
+                    key: moment(date).date(day).dayOfYear(), 
                     date: moment(date).date(day), 
                     week: Math.ceil((usedDays + day) / 7), 
                     select: this.props.selectDate})
@@ -21262,13 +21265,13 @@ var DayPicker = React.createClass({displayName: 'DayPicker',
             React.createElement("div", {className: "datepicker-dates-label"}, this.props.label), 
             React.createElement("div", {className: "datepicker-dates"}, 
               React.createElement("div", {className: "out"}, 
-              previousMonthDays
+                previousMonthDays
               ), 
               React.createElement("div", null, 
-              currentMonthDays
+                currentMonthDays
               ), 
               React.createElement("div", {className: "out"}, 
-              nextMonthDays
+                nextMonthDays
               )
             )
         )
@@ -21285,7 +21288,7 @@ var Day = React.createClass({displayName: 'Day',
       return {selected:false};
   },
   getClassName: function() {
-      var className="day week-" + this.props.week + " dayInWeek-" + this.props.date.day();
+      var className = "day week-" + this.props.week + " dayInWeek-" + this.props.date.day();
       // clicked day
       className += (this.props.selected ? ' selected':'');
       // in search period
@@ -21298,7 +21301,6 @@ var Day = React.createClass({displayName: 'Day',
       return className;
   },
   render: function() {
-    console.log(this.props.date.format('YYYY-MM-DD'), this.props.used);
     return (
         React.createElement("div", {className: this.getClassName()}, 
             React.createElement("a", {href: "#", onClick: this.handleClick}, this.props.date.date())
@@ -21403,19 +21405,11 @@ var MonthBar = React.createClass({displayName: 'MonthBar',
     render: function() {
         var visibleDate = this.state.visibleDate;
         var years = this.filterVisibleYears(this.props.period.start, this.props.period.end);
-
-        console.log("start", this.props.period.start.format('YYYY-MM-DD'));
-        console.log("end", this.props.period.end.format('YYYY-MM-DD'));
-
-        var y1 = moment().year(2014).month(10).date(10);
-        console.log("y1", y1.format('YYYY-MM-DD'), "used", this.used(y1));
-        var y2 = moment().year(2015).month(10).date(10);
-        console.log("y2", y2.format('YYYY-MM-DD'), "used", this.used(y2));
         
-
         years = years.map(function(year, yearName) {
           var months = year.map(function(month) {
               return  React.createElement(DayPicker, {
+                        key: month, 
                         label: month, 
                         date: moment(visibleDate).year(yearName).month(month), 
                         searched: this.inSearchPeriod, 
@@ -21424,7 +21418,7 @@ var MonthBar = React.createClass({displayName: 'MonthBar',
                         isEnd: this.check('checkoutDate')})
           }.bind(this));
 
-          return (React.createElement("div", {className: "year"}, 
+          return (React.createElement("div", {className: "year", key: yearName}, 
                     React.createElement("span", null, yearName), 
                     React.createElement("div", {className: "monthpicker"}, 
                       React.createElement("div", {className: "monthpicker-container"}, 
@@ -21522,7 +21516,7 @@ module.exports = {
 var APP = require('./components/app')
 var React = require('react')
 
-React.renderComponent(
+React.render(
 	React.createElement(APP, null), 
 	document.getElementById('main'));
 },{"./components/app":149,"react":148}],156:[function(require,module,exports){
