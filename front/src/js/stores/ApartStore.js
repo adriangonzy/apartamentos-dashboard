@@ -1,6 +1,7 @@
 var AppDispatcher = require('../dispatcher/AppDispatcher');
 var EventEmitter = require('events').EventEmitter;
 var ApartConstants = require('../constants/ApartConstants');
+var ApartApi = require('../ApartApi');
 var _ = require('lodash');
 
 // Define initial data points
@@ -35,24 +36,23 @@ var ApartStore = _.extend({}, EventEmitter.prototype, {
   }
 });
 
-
 function loadAparts(aparts) {
   _aparts = aparts;
 }
 
-function filterAparts(dates) {
-
-}
-
 function updateAparts() {
-
+  ApartApi.updateAparts();
 }
 
 function updateApart(apartId) {
-
+  ApartApi.updateApart(apartId);
 }
 
 function updateApartComplete(apart) {
+  
+}
+
+function filterAparts(dates) {
 
 }
 

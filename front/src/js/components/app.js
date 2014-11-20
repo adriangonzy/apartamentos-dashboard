@@ -1,7 +1,7 @@
 var React = require('react');
-var MonthBar = require('./monthbar.js');
-var DatePicker = require('./datepicker.js');
-var DatePickerInput = require('./datepickerinput.js');
+var MonthBar = require('./monthbar');
+var DatePicker = require('./datepicker');
+var DatePickerInput = require('./datepickerinput');
 
 var APP = 
 	React.createClass({
