@@ -1,6 +1,4 @@
-/** @jsx React.DOM */
 var React = require('react');
-var reservations = require('./reservations.js')
 var MonthBar = require('./monthbar.js');
 var DatePicker = require('./datepicker.js');
 var DatePickerInput = require('./datepickerinput.js');
