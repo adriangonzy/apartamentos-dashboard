@@ -18,18 +18,9 @@ var DatePickerInput = React.createClass({
     hideDatePicker: function() {
         this.setState({show: false});
     },
-    selecMonth: function(month) {
-        var newDate = this.state.date.month(month - 1);
-        this.setState({date: newDate, show: true});
-        this.props.onChangeDate(newDate);
-    },
-    selecYear: function(year) {
-        var newDate = this.state.date.year(year);
-        this.setState({date: newDate, show: true});
-        this.props.onChangeDate(newDate);
-    },
     selectDate: function(date) {
-        this.setState({date: date, show: false});
+        var show = this.state.date.date() === date.date();
+        this.setState({date: date, show: show});
         this.props.onChangeDate(date);
     },
     render: function() {
@@ -52,8 +43,6 @@ var DatePickerInput = React.createClass({
                 <div style={style} onClick={this.hideDatePicker}></div>
                 <div className="datepicker-wrapper">
                     <DatePicker 
-                      changeMonth={this.selecMonth}
-                      changeYear={this.selecYear}
                       selectDate={this.selectDate}
                       selectedDate={this.state.date}
                       show={this.state.show} />

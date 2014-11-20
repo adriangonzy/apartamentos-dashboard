@@ -1,4 +1,4 @@
-var calendarAvailabilityJSON = {
+module.exports = {
     "2014-11-30": {
         "status": "u"
     },
