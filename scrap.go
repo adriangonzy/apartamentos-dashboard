@@ -39,10 +39,11 @@ func (s *SimpleApartScrapper) Scrap(id string) (*Apart, error) {
 
 	return &Apart{
 		Description: data[0],
-		Data:        data[1],
 		Reserved:    data[2],
 		MinStays:    data[3],
 		UnitId:      data[4],
+		Calendar:    data[5],
+		ImageURLs:   getImageURLs(data[1], s.c),
 		Name:        id,
 	}, nil
 }
@@ -64,7 +65,7 @@ func scrapApartData(id string, c appengine.Context) ([]string, error) {
 		return nil, e
 	}
 
-	apartData := make([]string, 5)
+	apartData := make([]string, 6)
 
 	// query second body script and scrap inner text
 	// TODO: not very robust
@@ -80,8 +81,45 @@ func scrapApartData(id string, c appengine.Context) ([]string, error) {
 	apartData[3] = regexp.MustCompile(`var calendarMinStayJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
 	// unit ID
 	apartData[4] = getUnitId(apartData[1], c)
+	// calendar
+	apartData[5] = getCalendar(apartData[1], c)
 
 	return apartData, nil
+}
+
+func getImageURLs(encodedData string, c appengine.Context) []string {
+	var data struct {
+		Property struct {
+			ImageUrls []string `json:"imageUrls"`
+		} `json:"property"`
+	}
+
+	if e := json.Unmarshal([]byte(encodedData), &data); e != nil {
+		c.Debugf("unmarshaling error %v", e)
+	}
+	c.Debugf("get image urls %+v", data)
+
+	return data.Property.ImageUrls
+}
+
+func getCalendar(encodedData string, c appengine.Context) string {
+	var data struct {
+		AvailabilityCalendar struct {
+			Calendar json.RawMessage `json:"calendar"`
+		} `json:"availabilityCalendar"`
+	}
+
+	if e := json.Unmarshal([]byte(encodedData), &data); e != nil {
+		c.Debugf("unmarshaling error %v", e)
+	}
+	c.Debugf("get image urls %+v", data)
+
+	calendar, err := json.Marshal(&data.AvailabilityCalendar.Calendar)
+	if err != nil {
+		c.Debugf("marshaling raw message error %v", err)
+	}
+
+	return string(calendar)
 }
 
 func getUnitId(encodedData string, c appengine.Context) string {

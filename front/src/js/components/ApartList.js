@@ -1,39 +1,40 @@
 var React = require('react');
+var moment = require('moment');
 var ApartActions = require('../actions/ApartActions');
-var PaperButton = require('material-ui').PaperButton;
+var Apart = require('./Apart');
 
 var ApartList = React.createClass({
 
-  getInitialState: function() {
-    return {loading: false};
-  },
-
-  updateAparts: function() {
-    // TODO loading button
-    ApartActions.updateAparts();
+  getDefaultProps: function() {
+    return {
+      aparts: {available: [], unavailable: []}, 
+      dates: {
+          start: moment(), 
+          end: moment().add(1, 'year')
+      }
+    };
   },
 
   render: function() {
     var aparts = {available: [], unavailable: []},
-        available = this.props.aparts.available,
-        unavailable = this.props.aparts.unavailable;
+        available = (this.props.aparts.available || []),
+        unavailable = (this.props.aparts.unavailable || []);
 
-    available.push(<Apart
-                      isAvailable={true}
-                      period={this.props.dates}
-                      apart={apart} />);
+    aparts.available = available.map(function(k, apart) {
+      return (<Apart
+                isAvailable={true}
+                dates={this.props.dates}
+                apart={apart} />);
+    });
 
-    unavailable.push(<Apart
-                      isAvailable={false}
-                      period={this.props.dates}
-                      apart={apart} />);
-
+    aparts.unavailable = unavailable.map(function(k, apart) {
+      return (<Apart
+                isAvailable={false}
+                dates={this.props.dates}
+                apart={apart} />);
+    });
+    
     return (<div className="aparts">
-              <PaperButton 
-                  type="RAISED" 
-                  label="Primary" 
-                  primary={true} 
-                  onClick={this.updateAparts} />
               {aparts.available.length > 0 ? <h2>Disponibles</h2> : null}
               {aparts.available}
               <br></br>

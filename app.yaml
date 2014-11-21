@@ -5,11 +5,11 @@ api_version: go1
 
 handlers:
 - url: /
-  static_files: app/index.html
-  upload: app/index.html
+  static_files: front/dist/index.html
+  upload: front/dist/index.html
 
 - url: /app
-  static_dir: app
+  static_dir: front/dist
 
 - url: /.*
   script: _go_app

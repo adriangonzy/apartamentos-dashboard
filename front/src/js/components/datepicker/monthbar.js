@@ -5,11 +5,12 @@ var DayPicker = require('./daypicker.js');
 
 var MonthBar = React.createClass({
     getInitialState: function() {
-        return ({visibleDate:this.props.selectedDate});
+        return ({visibleDate: this.props.selectedDate});
     },
     getDefaultProps: function() {
         return({
             reservations:{},
+            weeks:{},
             selectedDate: moment(),
             period: {
                 start: moment(),
@@ -22,7 +23,7 @@ var MonthBar = React.createClass({
     },
 
     onChangeSelectedDate: function(date) {
-        this.setState({visibleDate:date});
+        this.setState({visibleDate: date});
         this.props.onChangeDate(date);
     },
 
@@ -103,13 +104,12 @@ var MonthBar = React.createClass({
                       date={moment(visibleDate).year(yearName).month(month)}
                       searched={this.inSearchPeriod}
                       used={this.used}
-                      isStart={this.check('checkinDate')}
-                      isEnd={this.check('checkoutDate')} />
+                      isStart={this.check('startDate')}
+                      isEnd={this.check('endDate')} />
             }.bind(this)));
         }.bind(this));
 
-        return(
-              <div className="monthpicker">
+        return(<div className="monthpicker">
                 <div className="monthpicker-container">
                   {months}
                 </div>

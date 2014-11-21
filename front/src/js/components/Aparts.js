@@ -39,7 +39,7 @@ var Aparts = React.createClass({
 		<div>
 			<DatesFilter
 			  dates={this.state.dates} />
-			<ApartLists
+			<ApartList
 			  aparts={this.state.aparts} 
 			  dates={this.state.dates} />
 		</div>

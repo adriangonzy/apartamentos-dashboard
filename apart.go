@@ -9,12 +9,13 @@ import (
 )
 
 type Apart struct {
-	Description string `datastore:",noindex" json:"description"`
-	Reserved    string `datastore:",noindex" json:"reserved"`
-	Data        string `datastore:",noindex" json:"data"`
-	MinStays    string `datastore:",noindex" json:"minstays"`
-	UnitId      string `json:"unit_id"`
-	Name        string `json:"id"`
+	Description string   `datastore:",noindex" json:"description"`
+	Reserved    string   `datastore:",noindex" json:"reserved"`
+	Calendar    string   `datastore:",noindex" json:"calendar"`
+	MinStays    string   `datastore:",noindex" json:"minstays"`
+	ImageURLs   []string `datastore:",noindex" json:"image_urls"`
+	UnitId      string   `json:"unit_id"`
+	Name        string   `json:"id"`
 }
 
 func UpdateAllAparts(c appengine.Context, scrapper ApartScrapper) ([]*Apart, error) {
@@ -46,6 +47,9 @@ func concatError(oldErr error, newErr error) error {
 
 func UpdateAparts(ids []string, c appengine.Context, scrapper ApartScrapper) ([]*Apart, error) {
 	aparts := []*Apart{}
+	if len(ids) == 0 {
+		return aparts, nil
+	}
 	// concurrently update aparts
 	var e error
 	var wg sync.WaitGroup

@@ -1,4 +1,4 @@
-var AppDispatcher = require('../dispatcher/AppDispatcher');
+var AppDispatcher = require('../dispatchers/AppDispatcher');
 var EventEmitter = require('events').EventEmitter;
 var ApartConstants = require('../constants/ApartConstants');
 var ApartApi = require('../ApartApi');

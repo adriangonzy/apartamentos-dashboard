@@ -1,4 +1,4 @@
-var AppDispatcher = require('../dispatcher/AppDispatcher');
+var AppDispatcher = require('../dispatchers/AppDispatcher');
 var ApartConstants = require('../constants/ApartConstants');
 
 // Define actions object

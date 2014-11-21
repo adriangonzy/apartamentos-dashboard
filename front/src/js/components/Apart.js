@@ -1,58 +1,46 @@
 var React = require('react');
+var ApartActions = require('../actions/ApartActions');
+var HOMELIDAYS_URL = require('../constants/ApartConstants').HOMELIDAYS_URL;
+var PaperButton = require('material-ui').PaperButton;
+var MonthBar = require('./datepicker/MonthBar');
 
 var Apart = React.createClass({
 
   getInitialState: function() {
-    return {loading: false, deleting: false};
-  },
-
-  onDelete: function() {
-    this.props.onDelete(this.props.apart.id);
-    this.setState({deleting: true});
+    return {loading: false};
   },
 
   onUpdate: function() {
-    this.props.onUpdate(this.props.apart.id);
+    ApartActions.updateApart(this.props.apart.id);
     this.setState({loading: true});
   },
 
   componentWillReceiveProps: function(nextProps) {
-    this.setState({loading: false, deleting: false});
+    this.setState({loading: false});
   },
 
   render: function() {
     var apart = this.props.apart,
-        image = apart.data.property ? apart.data.property.imageUrls[0] : "",
-        apartClassName = "apart" + (this.props.isAvailable ? "" : " unavailable"),
-        weeks = apart.data.availabilityCalendar ? apart.data.availabilityCalendar.reservations : {};
+        apartClassName = "apart" + (this.props.isAvailable ? "" : " unavailable");
+
     return (<div className={apartClassName}>
               <img className="apart-img" src={image} />
               <div className="apart-info">
                 <p>{apart.description}</p>
-                <a href={Homelidays_URL + apart.id} target={"_blank"}>
+                <a href={HOMELIDAYS_URL + apart.image_urls[0]} target={"_blank"}>
                   <p className="apart-id" >Referencia: {apart.id}</p>
                 </a>
-                <p>
-                <button 
-                  type="button" 
+                <PaperButton 
+                  type={"RAISED"} 
                   onClick={this.onUpdate} 
-                  className="btn btn-info" 
-                  disabled={this.state.loading ? "disabled":""}>
-                  {this.state.loading ? "actualizando...":"actualizar"}
-                </button>
-                <button 
-                  type="button" 
-                  onClick={this.onDelete} 
-                  className="btn btn-danger"
-                  disabled={this.state.deleting ? "disabled":""}>
-                  {this.state.deleting ? "suprimiendo...":"suprimir"}
-                </button>
-                </p>
+                  label={this.state.loading ? 'actualizando...' : 'Actualizar'}
+                  disabled={this.state.loading}
+                  primary={true} />
               </div>
               <MonthBar
-                period={this.props.period}
+                period={this.props.dates}
                 reservations={apart.reserved}
-                weeks={weeks} />
+                weeks={apart.calendar} />
             </div>);
   }
 });

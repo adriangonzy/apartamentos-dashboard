@@ -1,17 +1,19 @@
-var ApartConstants = require('./constants/ApartConstants');
-var ajax = require('simple-ajax');
+var ApartActions = require('./actions/ApartActions');
+var Ajax = require('simple-ajax');
+
+var baseURL = 'http://localhost:8080';
 
 module.exports = {
 
 	getAparts: function() {
 		var req = new Ajax({
-	        url: 'http://localhost:8888/rest/apart',
+	        url: baseURL + '/rest/apart/',
 	        method: 'GET'
 	    });
 
 		req.on('success', function(event) {
 			console.log('getAparts:', event);
-			ApartConstants.receiveAparts(event);
+			ApartActions.receiveAparts(event);
 		})
 		.on('error', function(event) {
 			console.error('getAparts:', event);
@@ -21,13 +23,13 @@ module.exports = {
 
 	updateAparts: function() {
 		var req = new Ajax({
-	        url: 'http://localhost:8888/rest/apart',
+	        url: baseURL + '/rest/apart/',
 	        method: 'PUT'
 	    });
 
 		req.on('success', function(event) {
 			console.log('updateAparts:', event);
-			ApartConstants.receiveAparts(event);
+			ApartActions.receiveAparts(event);
 		})
 		.on('error', function(event) {
 			console.error('updateAparts:', event);
@@ -37,13 +39,13 @@ module.exports = {
 
 	updateApart: function(apartId) {
 		var req = new Ajax({
-	        url: 'http://localhost:8888/rest/apart/' + apartId,
+	        url: baseURL + '/rest/apart/' + apartId + '/',
 	        method: 'PUT'
 	    });
 
 		req.on('success', function(event) {
 			console.log('updateApart:', event);
-			ApartConstants.updateApartComplete(event);
+			ApartActions.updateApartComplete(event);
 		})
 		.on('error', function(event) {
 			console.error('updateApart:', event);

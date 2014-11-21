@@ -23,4 +23,10 @@ var SideMenu = React.createClass({
     }
 });
 
+// <PaperButton 
+//      type="RAISED" 
+//      label={this.state.loading ? 'actualizando...' : "Actualizar Todos"} 
+//      primary={true} 
+//      onClick={this.updateAparts} />
+
 module.exports = SideMenu;
