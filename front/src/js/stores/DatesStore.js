@@ -29,8 +29,8 @@ var DatesStore = _.extend({}, EventEmitter.prototype, {
 });
 
 function updateDates(dates) {
-  console.log('update dates');
-  console.log(dates);
+  // console.log('update dates');
+  // console.log(dates);
   _dates = dates;
 }
 

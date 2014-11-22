@@ -14,6 +14,7 @@ var DayPicker = React.createClass({
 			selectDate: function(date) {console.log("select", date);}
 		});
 	},
+
 	render: function () {
 		var date = this.props.date.clone(),
         firstDay = date.startOf('month').day(),
@@ -99,6 +100,11 @@ var Day = React.createClass({
       className += (this.props.end ?' am-reserved':'');
       return className;
   },
+
+  shouldComponentUpdate: function(nextProps) {
+    return !_.isEqual(this.props, nextProps);
+  },
+
   render: function() {
     return (
         <div className={this.getClassName()}>

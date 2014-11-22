@@ -87,17 +87,13 @@ function filterAparts(dates) {
   console.log('before filter', _aparts);
 
   // for every apart flag if available
-  // _.each(_aparts, function(apart) {
-  //   apart.available = true;
-  //   _.each(apart.calendar, function(res){
-  //     var resStart = moment(res.startDate),
-  //         resEnd = moment(res.endDate);
-  //     apart.available = !intersect(start, end, resStart, resEnd);
-  //     return apart.available;
-  //   });
-  // });
+  _.each(_aparts, function(apart) {
+    apart.available = isAvailable(apart, dates);
+  });
+
 
   console.log('filtered');
+  console.table(_aparts);
 }
 
 function expandApart(apartId) {
@@ -137,7 +133,7 @@ AppDispatcher.register(function(payload) {
       break;
 
     case DatesConstants.DATES_UPDATE:
-      //filterAparts(action.dates);
+      filterAparts(action.dates);
       break;
 
     default:

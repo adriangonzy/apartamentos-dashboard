@@ -1,6 +1,8 @@
 var gulp = require('gulp');
 var browserify = require('gulp-browserify');
 var concat = require('gulp-concat');
+var less = require('gulp-less');
+var path = require('path');
 
 gulp.task('browserify', function() {
     gulp.src('src/js/main.js')
@@ -19,7 +21,15 @@ gulp.task('styles', function() {
       .pipe(gulp.dest('dist/css'));
 });
 
-gulp.task('default',['browserify', 'copy', 'styles']);
+gulp.task('less', function () {
+  gulp.src('node_modules/material-ui/src/less/components.less')
+    .pipe(less({
+      paths: [ path.join(__dirname, 'less', 'includes') ]
+    }))
+    .pipe(gulp.dest('dist/css'));
+});
+
+gulp.task('default',['browserify', 'copy', 'styles', 'less']);
 
 gulp.task('watch', function() {
     gulp.watch('src/**/*.*', ['default']);

@@ -28,7 +28,7 @@ var MonthBar = React.createClass({
     },
 
     used: function(date) {
-      return _.indexOf(this.props.reservations, date.format('YYYY-MM-DD')) > 0;
+      return _.indexOf(this.props.reservations, date.format('YYYY-MM-DD')) >= 0;
     },
 
     check: function(property) {
@@ -48,7 +48,8 @@ var MonthBar = React.createClass({
     inSearchPeriod: function(date) {
         var start = this.props.period.start, 
             end = this.props.period.end;
-        return start.isBefore(date) && date.isBefore(end);
+        
+        return end.isSame(date, 'day') || (start.isBefore(date) && date.isBefore(end));
     },
 
     filterVisibleYears: function(start, end) {
