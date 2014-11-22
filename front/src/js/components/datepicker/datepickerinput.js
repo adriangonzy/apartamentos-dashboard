@@ -19,9 +19,11 @@ var DatePickerInput = React.createClass({
         this.setState({show: false});
     },
     selectDate: function(date) {
-        var show = this.state.date.date() === date.date();
-        this.setState({date: date, show: show});
-        this.props.onChangeDate(date);
+        var sameDateInMonth = this.state.date.date() === date.date();
+        this.setState({date: date, show: sameDateInMonth});
+        if (!sameDateInMonth) {
+            this.props.onChangeDate(date);
+        }
     },
     render: function() {
         var style = {
@@ -44,7 +46,7 @@ var DatePickerInput = React.createClass({
                 <div className="datepicker-wrapper">
                     <DatePicker 
                       selectDate={this.selectDate}
-                      selectedDate={this.state.date}
+                      date={this.state.date}
                       show={this.state.show} />
                 </div>
             </div>

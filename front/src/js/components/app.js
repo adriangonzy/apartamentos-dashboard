@@ -1,11 +1,15 @@
 var React = require('react');
 var Aparts = require('./Aparts');
+var DatesFilter = require('./DatesFilter');
 
 var APP = 
 	React.createClass({
 		render: function() {	
 			return (
-				<Aparts />
+				<div>
+					<DatesFilter />
+					<Aparts />
+				</div>
 			);
 		}
 	});

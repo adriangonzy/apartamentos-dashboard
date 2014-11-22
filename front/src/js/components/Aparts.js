@@ -1,5 +1,6 @@
 var React = require('react');
 var ApartStore = require('../stores/ApartStore');
+var DatesStore = require('../stores/DatesStore');
 var ApartList = require('./ApartList');
 var DatesFilter = require('./DatesFilter');
 
@@ -7,7 +8,7 @@ var DatesFilter = require('./DatesFilter');
 function getApartsState() {
   return {
     aparts: ApartStore.getAparts(),
-    dates: ApartStore.getDates()
+    dates: DatesStore.getDates()
   };
 }
 
@@ -36,13 +37,9 @@ var Aparts = React.createClass({
   // Render our child components, passing state via props
   render: function() {
     return (
-		<div>
-			<DatesFilter
-			  dates={this.state.dates} />
 			<ApartList
 			  aparts={this.state.aparts} 
 			  dates={this.state.dates} />
-		</div>
     );
   }
 });

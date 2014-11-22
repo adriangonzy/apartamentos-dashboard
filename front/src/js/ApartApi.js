@@ -1,55 +1,43 @@
 var ApartActions = require('./actions/ApartActions');
-var Ajax = require('simple-ajax');
+var request = require('superagent');
 
 var baseURL = 'http://localhost:8080';
 
 module.exports = {
+	fillAparts: function() {
+		request
+		  	.put('/rest/apart/fill')
+		  	.end(function(resp){
+		  		console.log('fill aparts: ', event);
+		  		ApartActions.receiveAparts(JSON.parse(resp.text));
+		  	});
+	},
 
 	getAparts: function() {
-		var req = new Ajax({
-	        url: baseURL + '/rest/apart/',
-	        method: 'GET'
-	    });
-
-		req.on('success', function(event) {
-			console.log('getAparts:', event);
-			ApartActions.receiveAparts(event);
-		})
-		.on('error', function(event) {
-			console.error('getAparts:', event);
-		})
-		.send();
+		request
+		  	.get('/rest/apart/')
+		  	.end(function(resp){
+		  		console.log('get aparts: ', event);
+		  		ApartActions.receiveAparts(JSON.parse(resp.text));
+		  	});
 	},
 
 	updateAparts: function() {
-		var req = new Ajax({
-	        url: baseURL + '/rest/apart/',
-	        method: 'PUT'
-	    });
-
-		req.on('success', function(event) {
-			console.log('updateAparts:', event);
-			ApartActions.receiveAparts(event);
-		})
-		.on('error', function(event) {
-			console.error('updateAparts:', event);
-		})
-		.send();
+		request
+		  	.put('/rest/apart/')
+		  	.end(function(resp){
+		  		console.log('update aparts: ', event);
+		  		ApartActions.receiveAparts(JSON.parse(resp.text));
+		  	});
 	},
 
 	updateApart: function(apartId) {
-		var req = new Ajax({
-	        url: baseURL + '/rest/apart/' + apartId + '/',
-	        method: 'PUT'
-	    });
-
-		req.on('success', function(event) {
-			console.log('updateApart:', event);
-			ApartActions.updateApartComplete(event);
-		})
-		.on('error', function(event) {
-			console.error('updateApart:', event);
-		})
-		.send();
+		request
+		  	.put('/rest/apart/' + apartId + '/')
+		  	.end(function(resp){
+		  		console.log('update apart: ' + apartId);
+		  		console.log(resp);
+		  		ApartActions.updateApartComplete(JSON.parse(resp.text));
+		  	});
 	}
 };

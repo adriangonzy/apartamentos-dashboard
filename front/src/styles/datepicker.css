@@ -89,7 +89,8 @@ div.datepicker-dates div.day {
 
 .monthpicker-container {
   width: auto; 
-  white-space: nowrap
+  white-space: nowrap;
+  padding-left: 10px;
 }
 
 .datepicker {

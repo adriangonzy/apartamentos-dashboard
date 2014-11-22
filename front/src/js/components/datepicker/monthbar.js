@@ -28,14 +28,14 @@ var MonthBar = React.createClass({
     },
 
     used: function(date) {
-      return this.props.reservations[date.format('YYYY-MM-DD')] != undefined;
+      return _.indexOf(this.props.reservations, date.format('YYYY-MM-DD')) > 0;
     },
 
     check: function(property) {
       return function(date) {
         var dateKey = date.format('YYYY-MM-DD');
         var check = false;
-        _.each(this.props.weeks, function(k, reservation) {
+        _.each(this.props.weeks, function(reservation) {
           if (reservation[property] === dateKey) {
             check = true;
             return false;
@@ -59,15 +59,13 @@ var MonthBar = React.createClass({
         }
 
         if (end.isBefore(start))
-          return wholeYear;
+          return;
 
         var startYear = start.year(),
             endYear = end.year(),
-            years = [],
-            partialMonths = [];
+            years = [];
 
         if (startYear < endYear) {
-          console.log("different years");
           years[startYear] = _.filter(wholeYear, function(v, i) {
             return (start.month() <= i);
           });
@@ -81,33 +79,33 @@ var MonthBar = React.createClass({
             startYear++;
           }
         } else {
-          console.log("same year");
           years[startYear] = _.filter(wholeYear, function(v, i) {
             return (start.month() <= i && i <= end.month());
           }); 
         }
-        console.table(years);
         return years;
     },
 
     render: function() {
         var visibleDate = this.state.visibleDate;
-        var years = this.filterVisibleYears(this.props.period.start, this.props.period.end);
-        
-        var months = [];
-        years.map(function(yearMonths, yearName) {
-            months = months.concat(<div className="year" key={yearName}><span className="year-label rotate">{yearName}</span></div>);
-            months = months.concat(yearMonths.map(function(month) {
-            return  <DayPicker
-                      key={month}
-                      label={month}
-                      date={moment(visibleDate).year(yearName).month(month)}
-                      searched={this.inSearchPeriod}
-                      used={this.used}
-                      isStart={this.check('startDate')}
-                      isEnd={this.check('endDate')} />
-            }.bind(this)));
-        }.bind(this));
+        var years = this.filterVisibleYears(this.props.period.start, this.props.period.end),
+            months = [];
+
+        if (years) {
+          years.map(function(yearMonths, yearName) {
+              months = months.concat(<div className="year" key={yearName}><span className="year-label rotate">{yearName}</span></div>);
+              months = months.concat(yearMonths.map(function(month) {
+              return  <DayPicker
+                        key={month + '_' + yearName}
+                        label={month}
+                        date={moment(visibleDate).year(yearName).month(month)}
+                        searched={this.inSearchPeriod}
+                        used={this.used}
+                        isStart={this.check('startDate')}
+                        isEnd={this.check('endDate')} />
+              }.bind(this)));
+          }.bind(this));
+        }
 
         return(<div className="monthpicker">
                 <div className="monthpicker-container">

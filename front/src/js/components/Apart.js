@@ -1,40 +1,49 @@
 var React = require('react');
+var _ = require('lodash');
 var ApartActions = require('../actions/ApartActions');
-var HOMELIDAYS_URL = require('../constants/ApartConstants').HOMELIDAYS_URL;
 var PaperButton = require('material-ui').PaperButton;
 var MonthBar = require('./datepicker/MonthBar');
+var HOMELIDAYS_URL = 'http://www.homelidays.com/hebergement/p';
 
 var Apart = React.createClass({
 
-  getInitialState: function() {
-    return {loading: false};
+  getDefaultProps: function() {
+    return {
+      apart: {
+        reserved: {},
+        image_urls: [],
+        calendar: {}
+      }
+    };
+  },
+
+  shouldComponentUpdate: function(nextProps, nextState) {
+    var apartUpToDate = _.isEqual(this.props.apart, nextProps.apart);
+    var datesUpToDate = _.isEqual(this.props.dates, nextProps.dates);
+    return !apartUpToDate || !datesUpToDate;
   },
 
   onUpdate: function() {
     ApartActions.updateApart(this.props.apart.id);
-    this.setState({loading: true});
-  },
-
-  componentWillReceiveProps: function(nextProps) {
-    this.setState({loading: false});
   },
 
   render: function() {
     var apart = this.props.apart,
         apartClassName = "apart" + (this.props.isAvailable ? "" : " unavailable");
 
+    var image = apart.image_urls[0] || '';
+
     return (<div className={apartClassName}>
               <img className="apart-img" src={image} />
               <div className="apart-info">
                 <p>{apart.description}</p>
-                <a href={HOMELIDAYS_URL + apart.image_urls[0]} target={"_blank"}>
+                <a href={HOMELIDAYS_URL + apart.id} target={"_blank"}>
                   <p className="apart-id" >Referencia: {apart.id}</p>
                 </a>
                 <PaperButton 
-                  type={"RAISED"} 
+                  type={'RAISED'}
                   onClick={this.onUpdate} 
-                  label={this.state.loading ? 'actualizando...' : 'Actualizar'}
-                  disabled={this.state.loading}
+                  label={'Actualizar'}
                   primary={true} />
               </div>
               <MonthBar

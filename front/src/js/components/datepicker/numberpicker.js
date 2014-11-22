@@ -6,13 +6,10 @@ var NumberPicker = React.createClass({
   },
   changeNumber: function(e) {
       var l = e.target.getAttribute('data-number');
-      this.log("data-number   ", l);
       this.props.onChangeNumber(l);
   },
 
   log: function(msg, l) {
-      console.log(msg + " " + l);
-      console.log(this.props.value);
       return l;
   },
 

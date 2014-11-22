@@ -9,13 +9,18 @@ import (
 )
 
 type Apart struct {
-	Description string   `datastore:",noindex" json:"description"`
-	Reserved    string   `datastore:",noindex" json:"reserved"`
-	Calendar    string   `datastore:",noindex" json:"calendar"`
-	MinStays    string   `datastore:",noindex" json:"minstays"`
-	ImageURLs   []string `datastore:",noindex" json:"image_urls"`
-	UnitId      string   `json:"unit_id"`
-	Name        string   `json:"id"`
+	Description string        `datastore:",noindex" json:"description"`
+	Reserved    []string      `datastore:",noindex" json:"reserved"`
+	Calendar    []Reservation `datastore:",noindex" json:"calendar"`
+	MinStays    string        `datastore:",noindex" json:"minstays"`
+	ImageURLs   []string      `datastore:",noindex" json:"image_urls"`
+	UnitId      string        `json:"unit_id"`
+	Name        string        `json:"id"`
+}
+
+type Reservation struct {
+	StartDate string `json:"startDate"`
+	EndDate   string `json:"endDate"`
 }
 
 func UpdateAllAparts(c appengine.Context, scrapper ApartScrapper) ([]*Apart, error) {

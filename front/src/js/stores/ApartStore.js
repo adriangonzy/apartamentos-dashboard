@@ -1,11 +1,17 @@
-var AppDispatcher = require('../dispatchers/AppDispatcher');
+var _ = require('lodash');
+var moment = require('moment');
 var EventEmitter = require('events').EventEmitter;
+var AppDispatcher = require('../dispatchers/AppDispatcher');
+
 var ApartConstants = require('../constants/ApartConstants');
 var ApartApi = require('../ApartApi');
-var _ = require('lodash');
+
+var DatesConstants = require('../constants/DatesConstants');
+var DatesStore = require('./DatesStore');
+
 
 // Define initial data points
-var _aparts = {}, _dates = {};
+var _aparts = [];
 
 // Extend Cart Store with EventEmitter to add eventing capabilities
 var ApartStore = _.extend({}, EventEmitter.prototype, {
@@ -13,11 +19,6 @@ var ApartStore = _.extend({}, EventEmitter.prototype, {
   // Return cart items
   getAparts: function() {
     return _aparts;
-  },
-
-  // Return # of items in cart
-  getDates: function() {
-    return _dates;
   },
 
   // Emit Change event
@@ -37,23 +38,66 @@ var ApartStore = _.extend({}, EventEmitter.prototype, {
 });
 
 function loadAparts(aparts) {
+  console.log('store receive aparts');
+  console.log(aparts);
   _aparts = aparts;
+  filterAparts(DatesStore.getDates());
 }
 
 function updateAparts() {
+  console.log('store update aparts');
   ApartApi.updateAparts();
 }
 
 function updateApart(apartId) {
+  console.log('update apart' + apartId);
   ApartApi.updateApart(apartId);
 }
 
-function updateApartComplete(apart) {
-  
+function updateApartComplete(updatedApart) {
+  console.log('update apart complete');
+  console.log(updatedApart);
+
+  updatedApart.available = isAvailable(updatedApart, DatesStore.getDates());
+  var i = _.findIndex(_aparts, function(apart) {return apart.id === updatedApart.id});
+  _aparts[i] = updatedApart;
+}
+
+var intersect = function(s1, e1, s2, e2) {
+  // first segment maybe before second or second segment may be before first
+  return !(e1.isBefore(s2) && e1.isBefore(e2) || e2.isBefore(s1) && e2.isBefore(e1));
+};
+
+function isAvailable(apart, dates) {
+  var available = true;
+  _.each(apart.calendar, function(res){
+    var resStart = moment(res.startDate),
+        resEnd = moment(res.endDate);
+    available = !intersect(dates.start, dates.end, resStart, resEnd);
+    return available;
+  });
+  return available;
 }
 
 function filterAparts(dates) {
+  // save dates state
+  var start = dates.start,
+      end = dates.end;
 
+  console.log('before filter', _aparts);
+
+  // for every apart flag if available
+  // _.each(_aparts, function(apart) {
+  //   apart.available = true;
+  //   _.each(apart.calendar, function(res){
+  //     var resStart = moment(res.startDate),
+  //         resEnd = moment(res.endDate);
+  //     apart.available = !intersect(start, end, resStart, resEnd);
+  //     return apart.available;
+  //   });
+  // });
+
+  console.log('filtered');
 }
 
 function expandApart(apartId) {
@@ -63,7 +107,7 @@ function expandApart(apartId) {
 // Register callback with AppDispatcher
 AppDispatcher.register(function(payload) {
   var action = payload.action;
-
+  var disableEmit = false;
   switch(action.actionType) {
   
     case ApartConstants.RECEIVE_APARTS:
@@ -76,18 +120,32 @@ AppDispatcher.register(function(payload) {
 
     case ApartConstants.APARTS_UPDATE:
       updateAparts();
+      disableEmit = true;
       break;
 
     case ApartConstants.APART_UPDATE:
       updateApart(action.apartId);
+      disableEmit = true;
+      break;
+
+    case ApartConstants.APART_UPDATE_COMPLETE:
+      updateApartComplete(action.apart);
       break;
 
     case ApartConstants.APART_EXPAND:
       expandApart(action.apartId);
       break;
 
+    case DatesConstants.DATES_UPDATE:
+      //filterAparts(action.dates);
+      break;
+
     default:
       return true;
+  }
+
+  if (disableEmit) {
+    return true;
   }
 
   // If action was responded to, emit change event
