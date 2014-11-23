@@ -42,10 +42,10 @@ var ApartList = React.createClass({
     
     
     return (<div className="aparts">
-              {aparts.available.length > 0 ? <h2>Disponibles</h2> : null}
+              {aparts.available.length > 0 ? <h1 className={'sublist-header'}>Disponibles</h1> : null}
               {aparts.available}
               <br></br>
-              <h2>No Disponibles</h2>
+              <h1 className={'sublist-header'}>No Disponibles</h1>
               {aparts.unavailable}
             </div>);
   }

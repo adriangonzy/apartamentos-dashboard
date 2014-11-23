@@ -2,6 +2,8 @@ var React = require('react');
 var _ = require('lodash');
 var ApartActions = require('../actions/ApartActions');
 var PaperButton = require('material-ui').PaperButton;
+var Paper = require('material-ui').Paper;
+var Icon = require('material-ui').Icon;
 var MonthBar = require('./datepicker/MonthBar');
 var HOMELIDAYS_URL = 'http://www.homelidays.com/hebergement/p';
 
@@ -33,12 +35,15 @@ var Apart = React.createClass({
 
     var image = apart.image_urls[0] || '';
 
-    return (<div className={apartClassName}>
+    return (<Paper zDepth={1} rounded={false} className={apartClassName}> 
               <img className="apart-img" src={image} />
               <div className="apart-info">
-                <p>{apart.description}</p>
-                <a href={HOMELIDAYS_URL + apart.id} target={"_blank"}>
-                  <p className="apart-id" >Referencia: {apart.id}</p>
+                <p className="apart-description">{apart.description}</p>
+                <a className="apart-link" href={HOMELIDAYS_URL + apart.id} target={"_blank"}>
+                  <p className="apart-id" >
+                    <Icon icon="content-link" className="link-icon" />
+                    <span className="link-label">Referencia: {apart.id}</span>
+                  </p>
                 </a>
                 <PaperButton 
                   type={'RAISED'}
@@ -50,7 +55,7 @@ var Apart = React.createClass({
                 period={this.props.dates}
                 reservations={apart.reserved}
                 weeks={apart.calendar} />
-            </div>);
+            </ Paper>);
   }
 });
 
