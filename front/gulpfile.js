@@ -1,5 +1,4 @@
 var gulp = require('gulp');
-var Multistream = require('multistream');
 var browserify = require('gulp-browserify');
 var concat = require('gulp-concat');
 var less = require('gulp-less');

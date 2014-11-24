@@ -1,3 +1,11 @@
+.mui-app-bar {
+	height: 64px;
+}
+
+.mui-app-bar .mui-icon {
+	line-height: 38px;
+}
+
 .date-filter {
 	display: inline-block;
 }
@@ -85,7 +93,7 @@
 	opacity: 0.8;
 	border-bottom: 0px solid transparent;
 	bottom: 0;
-	border-bottom-width: 22px;
+	border-bottom-width: 20px;
 	border-left: 20px solid green;
 }
 
@@ -96,7 +104,7 @@
 	opacity: 0.8;
 	border-top: 0px solid transparent;
 	bottom: 0;
-	border-top-width: 22px;
+	border-top-width: 20px;
 	border-right: 20px solid green;
 }
 
