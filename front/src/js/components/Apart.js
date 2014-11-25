@@ -31,9 +31,8 @@ var Apart = React.createClass({
 
   render: function() {
     var apart = this.props.apart,
-        apartClassName = "apart" + (this.props.isAvailable ? "" : " unavailable");
-
-    var image = apart.image_urls[0] || '';
+        apartClassName = "apart" + (this.props.isAvailable ? "" : " unavailable"),
+        image = apart.image_urls[0] || '';
 
     return (<Paper zDepth={1} rounded={false} className={apartClassName}> 
               <img className="apart-img" src={image} />

@@ -29,7 +29,9 @@
 }
 
 .sublist-header {
-	font-size: 2em;
+	font-size: 3em;
+	font-weight: 200;
+	margin: 30px 0 20px 0;
 }
 
 .apart {

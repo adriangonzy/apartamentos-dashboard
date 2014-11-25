@@ -53,6 +53,7 @@ var MonthBar = React.createClass({
     },
 
     filterVisibleYears: function(start, end) {
+        console.time('Filter Apart: [start %s :: end %s]', start, end);
         var count = 0;
         var wholeYear = [];
         while (count < 12) {
@@ -84,6 +85,7 @@ var MonthBar = React.createClass({
             return (start.month() <= i && i <= end.month());
           }); 
         }
+        console.timeEnd('Filter Apart: [start %s :: end %s]', start, end);
         return years;
     },
 

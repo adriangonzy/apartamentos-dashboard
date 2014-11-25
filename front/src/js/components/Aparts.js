@@ -1,4 +1,5 @@
-var React = require('react');
+var React = require('react/addons');
+var Perf = React.addons.Perf;
 var ApartStore = require('../stores/ApartStore');
 var DatesStore = require('../stores/DatesStore');
 var ApartList = require('./ApartList');
@@ -41,6 +42,15 @@ var Aparts = React.createClass({
 			  aparts={this.state.aparts} 
 			  dates={this.state.dates} />
     );
+  },
+
+  componentDidUpdate: function() {
+    Perf.stop();
+    var measurements = Perf.getLastMeasurements();
+    Perf.printInclusive(measurements);
+    Perf.printExclusive(measurements);
+    Perf.printWasted(measurements);
+    Perf.printDOM(measurements);
   }
 });
 

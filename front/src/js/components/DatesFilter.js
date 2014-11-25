@@ -1,5 +1,6 @@
 /** @jsx React.DOM */
-var React = require('react');
+var React = require('react/addons');
+var Perf = React.addons.Perf;
 var moment = require('moment');
 var DatesActions = require('../actions/DatesActions');
 var DatesStore = require('../stores/DatesStore');
@@ -34,9 +35,11 @@ var DatesFilter = React.createClass({
   },
   
   changeStart: function(date) {
+    Perf.start();
     DatesActions.updateDates({start: date, end: this.state.dates.end});
   },
   changeEnd: function(date) {
+    Perf.start();
     DatesActions.updateDates({start: this.state.dates.start, end: date});
   },
   render: function() {
