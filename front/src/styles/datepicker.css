@@ -1,3 +1,29 @@
+.date-filter {
+  display: inline-block;
+}
+
+.date-filter-input.form-control {
+  width: 175px;
+}
+
+.date-picker-label {
+  margin: 0 10px 10px 10px;
+  font-size: 15px;
+}
+
+.date-filter input {
+  text-align: center;
+}
+
+.date-filters .form-group {
+  margin-right: 20px;
+}
+
+.date-filters {
+  text-align: center;
+  margin: 40px 0;
+}
+
 div.datepicker-dates {
   position: relative;
   width: 155px;
@@ -127,8 +153,8 @@ div.datepicker-dates div.day {
 }
 .datepicker .day.used a,
 .monthpicker .day.used a {
-  background-color: green;
-  color: black;
+  background-color: #F50057;
+  color: white;
 }
 .datepicker .datapicker-month, 
 .datepicker .datapicker-year {

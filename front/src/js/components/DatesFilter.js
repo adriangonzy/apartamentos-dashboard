@@ -45,13 +45,13 @@ var DatesFilter = React.createClass({
   render: function() {
     return (<form className="form-inline date-filters" role="form">
               <div className="date-filter form-group">
-                <label className="date-picker-label">check-in</label>
+                <label className="date-picker-label">Check-in</label>
                 <DatePickerInput
                   date={this.state.dates.start}
                   onChangeDate={this.changeStart} />
               </div>
               <div className="date-filter form-group">
-                <label className="date-picker-label">check-out</label>
+                <label className="date-picker-label">Check-out</label>
                 <DatePickerInput 
                   date={this.state.dates.end}
                   onChangeDate={this.changeEnd} />

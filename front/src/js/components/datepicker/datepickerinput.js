@@ -36,9 +36,9 @@ var DatePickerInput = React.createClass({
         };
         return (
             <div>
-                <input 
+                <input
                     type="text" 
-                    className="form-control" 
+                    className="date-filter-input form-control" 
                     onFocus={this.showDatePicker} 
                     value={this.state.date.format('DD/MM/YYYY')} 
                     onChange={function(){}}/>

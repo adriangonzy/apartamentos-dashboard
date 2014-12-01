@@ -13,3 +13,8 @@ handlers:
 
 - url: /.*
   script: _go_app
+
+skip_files:
+- ^front/node_modules
+- ^front/src
+- ^front/gulpfile.js

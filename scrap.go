@@ -69,7 +69,7 @@ func scrapApartData(id string, c appengine.Context) ([]string, error) {
 
 	// query second body script and scrap inner text
 	// TODO: not very robust
-	data := doc.Find(".body-inner > script").Eq(1).Text()
+	data := doc.Find(".body-inner").First().Text()
 
 	// description
 	apartData[0] = strings.TrimSpace(doc.Find(".property-title").First().Text())

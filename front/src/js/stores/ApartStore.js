@@ -64,15 +64,18 @@ function updateApartComplete(updatedApart) {
 }
 
 var intersect = function(s1, e1, s2, e2) {
-  // first segment maybe before second or second segment may be before first
-  return !(e1.isBefore(s2) && e1.isBefore(e2) || e2.isBefore(s1) && e2.isBefore(e1));
+  var firstPeriodBeforeSecond = e1.isBefore(s2, 'day') && e1.isBefore(e2, 'day'),
+      secondPeriodBeforeFirst = e2.isBefore(s1, 'day') && e2.isBefore(e1, 'day');
+  return !(firstPeriodBeforeSecond || secondPeriodBeforeFirst);
 };
 
 function isAvailable(apart, dates) {
   var available = true;
   _.each(apart.calendar, function(res){
-    var resStart = moment(res.startDate),
-        resEnd = moment(res.endDate);
+    // add one day to start so first half day is not accounted in intersection
+    var resStart = moment(res.startDate).add(1, 'day'),
+    // remove one day to end so last half day is not accounted in intersection
+        resEnd = moment(res.endDate).subtract(1, 'day');
     available = !intersect(dates.start, dates.end, resStart, resEnd);
     return available;
   });
