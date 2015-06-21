@@ -4,6 +4,7 @@ import (
 	"appengine"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/justinas/alice"
 	"net/http"
 )
 
@@ -25,65 +26,64 @@ var apartIDs = []string{
 
 func init() {
 	r := mux.NewRouter()
+	common := alice.New(loggingHandler)
 
 	// /rest/apart
 	apartRouter := r.PathPrefix("/rest/apart").Subrouter()
-	apartRouter.HandleFunc("/", getApartsHandler).Methods("GET")
-	apartRouter.HandleFunc("/", updateAllApartsHandler).Methods("PUT")
+	apartRouter.Handle("/", common.ThenFunc(getAparts)).Methods("GET")
+	apartRouter.Handle("/", common.ThenFunc(updateAllAparts)).Methods("PUT")
+	apartRouter.Handle("/fill", common.ThenFunc(fillAparts)).Methods("PUT") /** TEST ONLY */
 
 	// /rest/apart/id/
 	apartCRUD := apartRouter.PathPrefix("/{id}").Subrouter()
-	apartCRUD.HandleFunc("/", crudHandler(GetApart)).Methods("GET")
-	apartCRUD.HandleFunc("/", crudHandler(DeleteApart)).Methods("DELETE")
-	apartCRUD.HandleFunc("/", crudHandler(scrap(CreateApart))).Methods("POST")
-	apartCRUD.HandleFunc("/", crudHandler(scrap(UpdateApart))).Methods("PUT")
-
-	/** TEST ONLY */
-
-	// /rest/apart/fill
-	apartRouter.HandleFunc("/fill", fillApartsHandler).Methods("PUT")
-
-	/** TEST ONLY */
+	apartCRUD.Handle("/", common.ThenFunc(crud(GetApart))).Methods("GET")
+	apartCRUD.Handle("/", common.ThenFunc(crud(DeleteApart))).Methods("DELETE")
+	apartCRUD.Handle("/", common.ThenFunc(crud(scrap(CreateApart)))).Methods("POST")
+	apartCRUD.Handle("/", common.ThenFunc(crud(scrap(UpdateApart)))).Methods("PUT")
 
 	http.Handle("/", r)
 }
 
-func getApartsHandler(w http.ResponseWriter, r *http.Request) {
+func getAparts(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	aparts, e := GetAparts(c)
 	response(w, aparts, e)
 }
 
-func updateAllApartsHandler(w http.ResponseWriter, r *http.Request) {
+func updateAllAparts(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	aparts, e := UpdateAllAparts(c, NewApartScrapper(c))
 	response(w, aparts, e)
 }
 
-func fillApartsHandler(w http.ResponseWriter, r *http.Request) {
+func fillAparts(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	aparts, e := UpdateAparts(apartIDs, c, NewApartScrapper(c))
 	response(w, aparts, e)
 }
 
-func crudHandler(crudFunc func(id string, c appengine.Context) (*Apart, error)) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+type CrudFunc func(string, appengine.Context) (*Apart, error)
+type EditingFunc func(*Apart, appengine.Context) (*Apart, error)
+
+func crud(crudFunc CrudFunc) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		c := appengine.NewContext(r)
 		vars := mux.Vars(r)
 		id := vars["id"]
 		apart, e := crudFunc(id, c)
 		response(w, apart, e)
 	}
+	return http.HandlerFunc(fn)
 }
 
-func scrap(editingFunc func(*Apart, appengine.Context) (*Apart, error)) func(string, appengine.Context) (*Apart, error) {
-	return func(id string, c appengine.Context) (*Apart, error) {
+func scrap(editingFunc EditingFunc) CrudFunc {
+	return CrudFunc(func(id string, c appengine.Context) (*Apart, error) {
 		if apart, e := NewApartScrapper(c).Scrap(id); e != nil {
 			return nil, e
 		} else {
 			return editingFunc(apart, c)
 		}
-	}
+	})
 }
 
 func response(w http.ResponseWriter, r interface{}, e error) {

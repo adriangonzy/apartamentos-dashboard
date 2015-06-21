@@ -33,22 +33,36 @@ func (s *SimpleApartScrapper) Scrap(id string) (*Apart, error) {
 		return nil, e
 	}
 
-	if data == nil || len(data) == 0 {
+	if data == nil {
 		return nil, errors.New("No data was found for " + id)
 	}
 
 	return &Apart{
-		Description: data[0],
-		Reserved:    getReservedDaysList(data[2], s.c),
-		MinStays:    data[3],
-		UnitId:      data[4],
-		Calendar:    getCalendar(data[1], s.c),
-		ImageURLs:   getImageURLs(data[1], s.c),
+		Description: data.description,
+		Reserved:    getReservedDaysList(data.reservations, s.c),
+		Calendar:    getCalendar(data, s.c),
+		MinStays:    data.minStays,
+		UnitId:      data.Unit.Id,
+		ImageURLs:   data.Unit.Property.ImageUrls,
 		Name:        id,
 	}, nil
 }
 
-func scrapApartData(id string, c appengine.Context) ([]string, error) {
+type ApartData struct {
+	description, reservations, minStays string
+
+	Unit struct {
+		Id                   string `json:"id"`
+		AvailabilityCalendar struct {
+			Calendar map[string]Reservation `json:"calendar"`
+		} `json:"availabilityCalendar"`
+		Property struct {
+			ImageUrls []string `json:"imageUrls"`
+		} `json:"property"`
+	} `json:"unit"`
+}
+
+func scrapApartData(id string, c appengine.Context) (*ApartData, error) {
 	url := HOMELIDAYS_APART_URL + id
 
 	// use appengine url fetch
@@ -65,24 +79,26 @@ func scrapApartData(id string, c appengine.Context) ([]string, error) {
 		return nil, e
 	}
 
-	apartData := make([]string, 5)
-
 	// query second body script and scrap inner text
 	// TODO: not very robust
 	data := doc.Find(".body-inner").First().Text()
 
-	// description
-	apartData[0] = strings.TrimSpace(doc.Find(".property-title").First().Text())
 	// all apart data
-	apartData[1] = regexp.MustCompile(`var unitJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
-	// reservations
-	apartData[2] = regexp.MustCompile(`var calendarAvailabilityJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
-	// min stays
-	apartData[3] = regexp.MustCompile(`var calendarMinStayJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
-	// unit ID
-	apartData[4] = getUnitId(apartData[1], c)
+	var pageData = regexp.MustCompile(`\'pageData\', \[\], function\(\) \{\n\s+return\s+({.*})`).FindStringSubmatch(data)[1]
+	var apartData = getApartData(pageData, c)
+	apartData.description = strings.TrimSpace(doc.Find(".property-title").First().Text())
+	apartData.reservations = regexp.MustCompile(`var calendarAvailabilityJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
+	apartData.minStays = regexp.MustCompile(`var calendarMinStayJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
 
 	return apartData, nil
+}
+
+func getApartData(encodedData string, c appengine.Context) *ApartData {
+	var data = &ApartData{}
+	if e := json.Unmarshal([]byte(encodedData), data); e != nil {
+		c.Debugf("unmarshaling error %v", e)
+	}
+	return data
 }
 
 func getReservedDaysList(encodedData string, c appengine.Context) []string {
@@ -101,53 +117,12 @@ func getReservedDaysList(encodedData string, c appengine.Context) []string {
 	return keys
 }
 
-func getImageURLs(encodedData string, c appengine.Context) []string {
-	var data struct {
-		Property struct {
-			ImageUrls []string `json:"imageUrls"`
-		} `json:"property"`
-	}
-
-	if e := json.Unmarshal([]byte(encodedData), &data); e != nil {
-		c.Debugf("unmarshaling error %v", e)
-	}
-	c.Debugf("get image urls %+v", data.Property.ImageUrls)
-
-	return data.Property.ImageUrls
-}
-
-func getCalendar(encodedData string, c appengine.Context) []Reservation {
-	var data struct {
-		AvailabilityCalendar struct {
-			Calendar map[string]Reservation `json:"calendar"`
-		} `json:"availabilityCalendar"`
-	}
-
-	if e := json.Unmarshal([]byte(encodedData), &data); e != nil {
-		c.Debugf("unmarshaling error %v", e)
-	}
-
-	// extract reservations
-	calendar := data.AvailabilityCalendar.Calendar
+func getCalendar(apart *ApartData, c appengine.Context) []Reservation {
+	calendar := apart.Unit.AvailabilityCalendar.Calendar
 	reservations := make([]Reservation, 0, len(calendar))
 	for _, res := range calendar {
 		reservations = append(reservations, res)
 	}
 	c.Debugf("get calendar %+v", reservations)
-
 	return reservations
-}
-
-func getUnitId(encodedData string, c appengine.Context) string {
-	var data map[string]interface{}
-
-	if e := json.Unmarshal([]byte(encodedData), &data); e != nil {
-		c.Debugf("unmarshaling error %v", e)
-	}
-
-	if data["unitId"] != nil {
-		return data["unitId"].(string)
-	}
-	c.Debugf("no UNIT ID")
-	return ""
 }
