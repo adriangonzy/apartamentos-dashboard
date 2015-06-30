@@ -43,7 +43,7 @@ func (s *SimpleApartScrapper) Scrap(id string) (*Apart, error) {
 		Calendar:    getCalendar(data, s.c),
 		MinStays:    data.minStays,
 		UnitId:      data.Unit.Id,
-		ImageURLs:   data.Unit.Property.ImageUrls,
+		ImageURLs:   getImageURLs(data, s.c),
 		Name:        id,
 	}, nil
 }
@@ -56,9 +56,13 @@ type ApartData struct {
 		AvailabilityCalendar struct {
 			Calendar map[string]Reservation `json:"calendar"`
 		} `json:"availabilityCalendar"`
-		Property struct {
-			ImageUrls []string `json:"imageUrls"`
-		} `json:"property"`
+		Images []struct {
+			Files []struct {
+				Height int    `json:"height"`
+				Width  int    `json:"width"`
+				URI    string `json:"uri"`
+			} `json:"imageFiles"`
+		} `json:"images"`
 	} `json:"unit"`
 }
 
@@ -98,7 +102,27 @@ func getApartData(encodedData string, c appengine.Context) *ApartData {
 	if e := json.Unmarshal([]byte(encodedData), data); e != nil {
 		c.Debugf("unmarshaling error %v", e)
 	}
+	c.Debugf("get apart data %+v", data)
 	return data
+}
+
+func getImageURLs(apart *ApartData, c appengine.Context) []string {
+	imageURLs := []string{}
+	for _, image := range apart.Unit.Images {
+
+		maxFile := image.Files[0]
+
+		// better quality image
+		for _, file := range image.Files {
+			if file.Width > maxFile.Width {
+				maxFile = file
+			}
+		}
+
+		imageURLs = append(imageURLs, maxFile.URI)
+	}
+	c.Debugf("get Image Urls %+v", imageURLs)
+	return imageURLs
 }
 
 func getReservedDaysList(encodedData string, c appengine.Context) []string {
