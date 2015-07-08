@@ -52,7 +52,7 @@ type ApartData struct {
 	description, reservations, minStays string
 
 	Unit struct {
-		Id                   string `json:"id"`
+		Id                   string `json:"spu"`
 		AvailabilityCalendar struct {
 			Calendar map[string]Reservation `json:"calendar"`
 		} `json:"availabilityCalendar"`
@@ -63,7 +63,7 @@ type ApartData struct {
 				URI    string `json:"uri"`
 			} `json:"imageFiles"`
 		} `json:"images"`
-	} `json:"unit"`
+	} `json:"listing"`
 }
 
 func scrapApartData(id string, c appengine.Context) (*ApartData, error) {
@@ -98,6 +98,8 @@ func scrapApartData(id string, c appengine.Context) (*ApartData, error) {
 }
 
 func getApartData(encodedData string, c appengine.Context) *ApartData {
+	c.Debugf("encoded data %v", encodedData)
+
 	var data = &ApartData{}
 	if e := json.Unmarshal([]byte(encodedData), data); e != nil {
 		c.Debugf("unmarshaling error %v", e)
@@ -108,6 +110,7 @@ func getApartData(encodedData string, c appengine.Context) *ApartData {
 
 func getImageURLs(apart *ApartData, c appengine.Context) []string {
 	imageURLs := []string{}
+
 	for _, image := range apart.Unit.Images {
 
 		maxFile := image.Files[0]
