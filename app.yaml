@@ -15,6 +15,9 @@ handlers:
   script: _go_app
 
 skip_files:
-- ^front/node_modules
-- ^front/src
-- ^front/gulpfile.js
+- front/node_modules
+- front/src
+- front/gulpfile.js
+- .git
+- ressources
+- .gitignore

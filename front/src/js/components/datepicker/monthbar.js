@@ -28,15 +28,31 @@ var MonthBar = React.createClass({
     },
 
     used: function(date) {
-      return _.indexOf(this.props.reservations, date.format('YYYY-MM-DD')) >= 0;
+      if (!this.indexedReservations) {
+        //console.log('before index', this.props.weeks);
+        this.indexedReservations = _.sortBy(this.props.weeks, 'startDate');
+        //console.log('indexed', this.indexedReservations);
+      }
+
+      var dateStr = date.format('YYYY-MM-DD');
+
+      for (var i = 0; i < this.indexedReservations.length; i++) {
+        var res = this.indexedReservations[i];
+        if (dateStr < res.startDate) {
+          return false;
+        }
+        if (dateStr < res.endDate) {
+          return true;
+        }
+      }
     },
 
-    check: function(property) {
+    check: function(startOrEnd) {
       return function(date) {
         var dateKey = date.format('YYYY-MM-DD');
         var check = false;
         _.each(this.props.weeks, function(reservation) {
-          if (reservation[property] === dateKey) {
+          if (reservation[startOrEnd] === dateKey) {
             check = true;
             return false;
           }
@@ -46,9 +62,9 @@ var MonthBar = React.createClass({
     },
 
     inSearchPeriod: function(date) {
-        var start = this.props.period.start, 
+        var start = this.props.period.start,
             end = this.props.period.end;
-        
+
         return end.isSame(date, 'day') || (start.isBefore(date) && date.isBefore(end));
     },
 
@@ -83,7 +99,7 @@ var MonthBar = React.createClass({
         } else {
           years[startYear] = _.filter(wholeYear, function(v, i) {
             return (start.month() <= i && i <= end.month());
-          }); 
+          });
         }
         console.timeEnd('Filter Apart: [start %s :: end %s]', start, end);
         return years;

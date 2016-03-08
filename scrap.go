@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"regexp"
-	"strings"
+	_ "strings"
+	"io/ioutil"
 
 	"appengine"
 	"appengine/urlfetch"
 
-	"github.com/PuerkitoBio/goquery"
+	_ "github.com/PuerkitoBio/goquery"
 )
 
 const HOMELIDAYS_APART_URL = "http://www.homelidays.com/hebergement/p"
@@ -76,21 +77,17 @@ func scrapApartData(id string, c appengine.Context) (*ApartData, error) {
 		return nil, e
 	}
 
-	// parse url fetch response for building the dom representation
-	doc, e := goquery.NewDocumentFromResponse(resp)
+	dataBytes, e := ioutil.ReadAll(resp.Body)
+	data := string(dataBytes)
 	if e != nil {
-		c.Errorf("parsing Dom %v", e)
+		c.Errorf("resp to string %v", e)
 		return nil, e
 	}
 
-	// query second body script and scrap inner text
-	// TODO: not very robust
-	data := doc.Find(".body-inner").First().Text()
-
 	// all apart data
-	var pageData = regexp.MustCompile(`\'pageData\', \[\], function\(\) \{\n\s+return\s+({.*})`).FindStringSubmatch(data)[1]
-	var apartData = getApartData(pageData, c)
-	apartData.description = strings.TrimSpace(doc.Find(".property-title").First().Text())
+	pageData := regexp.MustCompile(`\'pageData\',\s+\[\],\s+(\{.*\})`).FindStringSubmatch(data)[1]
+	apartData := getApartData(pageData, c)
+	apartData.description = regexp.MustCompile(`\"og\:title\"\s+content\=\"(.*)\|.*\"`).FindStringSubmatch(data)[1]
 	apartData.reservations = regexp.MustCompile(`var calendarAvailabilityJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
 	apartData.minStays = regexp.MustCompile(`var calendarMinStayJSON\s+=\s+({.*})`).FindStringSubmatch(data)[1]
 
@@ -98,13 +95,13 @@ func scrapApartData(id string, c appengine.Context) (*ApartData, error) {
 }
 
 func getApartData(encodedData string, c appengine.Context) *ApartData {
-	c.Debugf("encoded data %v", encodedData)
+	// c.Debugf("encoded data %v", encodedData)
 
 	var data = &ApartData{}
 	if e := json.Unmarshal([]byte(encodedData), data); e != nil {
 		c.Debugf("unmarshaling error %v", e)
 	}
-	c.Debugf("get apart data %+v", data)
+	// c.Debugf("get apart data %+v", data)
 	return data
 }
 
